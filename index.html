@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>工具 - 在线安装</title>
+    <style>
+        :root {
+            --blue: #007AFF;
+            --green: #34C759;
+            --red: #FF3B30;
+            --orange: #FF9500;
+            --bg1: #0a0a1a;
+            --bg2: #12122a;
+            --card: rgba(255,255,255,0.06);
+            --card-border: rgba(255,255,255,0.08);
+            --text: #fff;
+            --text2: rgba(255,255,255,0.55);
+            --text3: rgba(255,255,255,0.3);
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;
+            background:var(--bg1);color:var(--text);
+            min-height:100vh;overflow-x:hidden;
+            -webkit-font-smoothing:antialiased;
+        }
+
+        /* 背景光效 */
+        .bg-glow{
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            pointer-events:none;z-index:0;overflow:hidden;
+        }
+        .bg-glow::before,.bg-glow::after{
+            content:'';position:absolute;border-radius:50%;
+            filter:blur(80px);opacity:0.4;
+        }
+        .bg-glow::before{
+            width:300px;height:300px;
+            background:radial-gradient(circle,rgba(0,122,255,0.3),transparent 70%);
+            top:-50px;left:-50px;
+        }
+        .bg-glow::after{
+            width:250px;height:250px;
+            background:radial-gradient(circle,rgba(175,82,222,0.25),transparent 70%);
+            bottom:10%;right:-30px;
+        }
+
+        .page{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:24px 20px 40px;}
+
+        /* ===== 顶部 APP 信息 ===== */
+        .app-header{text-align:center;padding:30px 0 24px;}
+        .app-icon{
+            width:88px;height:88px;border-radius:22px;margin:0 auto 16px;
+            box-shadow:0 10px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.08);
+            display:block;
+        }
+        .app-title{font-size:22px;font-weight:700;letter-spacing:0.3px;}
+        .app-subtitle{font-size:13px;color:var(--text2);margin-top:6px;}
+
+        /* ===== 检测卡片 ===== */
+        .detect{
+            background:var(--card);border:1px solid var(--card-border);
+            border-radius:20px;padding:20px 22px;margin-bottom:20px;
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+        }
+        .detect-head{
+            display:flex;align-items:center;gap:8px;
+            font-size:13px;font-weight:600;color:var(--text2);
+            margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;
+        }
+        .detect-head .dot{
+            width:6px;height:6px;border-radius:50%;background:var(--blue);
+            animation:blink 2s ease-in-out infinite;
+        }
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+        .detect-row{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:10px 0;
+        }
+        .detect-row+.detect-row{border-top:1px solid rgba(255,255,255,0.04);}
+        .detect-label{font-size:14px;color:var(--text2);}
+        .detect-val{font-size:14px;font-weight:500;}
+        .detect-val.loading{color:var(--text3);}
+        .detect-val.ok{color:var(--green);}
+        .detect-val.err{color:var(--red);}
+        .detect-val.warn{color:var(--orange);}
+        .detect-val.loading::after{content:'';display:inline-block;width:12px;height:12px;
+            border:2px solid rgba(255,255,255,0.1);border-top-color:var(--blue);
+            border-radius:50%;animation:spin 0.8s linear infinite;margin-left:8px;vertical-align:middle;}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ===== 主操作区（推荐版本） ===== */
+        .action{
+            background:var(--card);border:1px solid var(--card-border);
+            border-radius:24px;padding:28px 24px;margin-bottom:16px;
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            text-align:center;
+        }
+        .action-label{
+            display:inline-flex;align-items:center;gap:5px;
+            padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;
+            background:rgba(52,199,89,0.15);color:var(--green);
+            border:1px solid rgba(52,199,89,0.2);
+            margin-bottom:18px;letter-spacing:0.5px;
+        }
+        .action-label .check{width:12px;height:12px;}
+        .action-name{font-size:20px;font-weight:700;margin-bottom:4px;}
+        .action-range{font-size:13px;color:var(--text2);margin-bottom:22px;}
+        .action-range b{color:var(--text);font-weight:600;}
+
+        .install-btn{
+            display:flex;align-items:center;justify-content:center;gap:8px;
+            width:100%;padding:16px;border:none;border-radius:16px;
+            font-size:17px;font-weight:700;color:#fff;cursor:pointer;
+            text-decoration:none;letter-spacing:0.3px;
+            background:linear-gradient(135deg,var(--blue) 0%,#5856D6 100%);
+            box-shadow:0 6px 24px rgba(0,122,255,0.3);
+            transition:all 0.3s ease;
+        }
+        .install-btn:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(0,122,255,0.2);}
+        .install-btn .arrow{
+            font-size:20px;transition:transform 0.3s ease;
+        }
+        .install-btn:active .arrow{transform:translateX(3px);}
+        .install-btn.disabled{
+            background:rgba(255,255,255,0.06);
+            box-shadow:none;color:var(--text3);
+            pointer-events:none;cursor:default;
+        }
+        .install-btn.disabled:active{transform:none;}
+        .install-btn .dl-icon{width:20px;height:20px;fill:#fff;}
+
+        /* ===== 另一个版本（折叠） ===== */
+        .alt{
+            background:var(--card);border:1px solid var(--card-border);
+            border-radius:16px;padding:16px 20px;margin-bottom:20px;
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+        }
+        .alt-head{
+            display:flex;align-items:center;justify-content:space-between;
+            cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+        }
+        .alt-head:active{opacity:0.7;}
+        .alt-title{font-size:14px;color:var(--text2);}
+        .alt-arrow{
+            font-size:12px;color:var(--text3);
+            transition:transform 0.3s ease;
+        }
+        .alt.open .alt-arrow{transform:rotate(180deg);}
+        .alt-body{
+            display:none;padding-top:14px;margin-top:14px;
+            border-top:1px solid rgba(255,255,255,0.04);
+        }
+        .alt.open .alt-body{display:block;}
+        .alt-body .alt-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+        .alt-body .alt-range{font-size:12px;color:var(--text2);margin-bottom:14px;}
+        .alt-btn{
+            display:flex;align-items:center;justify-content:center;gap:6px;
+            width:100%;padding:12px;border:1px solid rgba(255,255,255,0.12);
+            border-radius:12px;background:transparent;color:var(--text);
+            font-size:14px;font-weight:600;cursor:pointer;
+            text-decoration:none;transition:all 0.3s ease;
+        }
+        .alt-btn:active{background:rgba(255,255,255,0.05);transform:scale(0.98);}
+
+        /* ===== 不支持的提示 ===== */
+        .unsupported{
+            background:rgba(255,59,48,0.08);border:1px solid rgba(255,59,48,0.15);
+            border-radius:20px;padding:28px 24px;margin-bottom:20px;text-align:center;
+        }
+        .unsupported .err-icon{
+            width:48px;height:48px;border-radius:50%;margin:0 auto 14px;
+            background:rgba(255,59,48,0.15);display:flex;align-items:center;justify-content:center;
+        }
+        .unsupported .err-icon svg{width:24px;height:24px;fill:var(--red);}
+        .unsupported .err-title{font-size:17px;font-weight:700;margin-bottom:6px;color:var(--red);}
+        .unsupported .err-desc{font-size:13px;color:var(--text2);line-height:1.7;}
+
+        /* ===== 非 iOS 提示 ===== */
+        .non-ios{
+            background:rgba(255,149,0,0.08);border:1px solid rgba(255,149,0,0.15);
+            border-radius:20px;padding:28px 24px;margin-bottom:20px;text-align:center;
+        }
+        .non-ios .warn-icon{
+            width:48px;height:48px;border-radius:50%;margin:0 auto 14px;
+            background:rgba(255,149,0,0.15);display:flex;align-items:center;justify-content:center;
+        }
+        .non-ios .warn-icon svg{width:24px;height:24px;fill:var(--orange);}
+        .non-ios .warn-title{font-size:17px;font-weight:700;margin-bottom:6px;color:var(--orange);}
+        .non-ios .warn-desc{font-size:13px;color:var(--text2);line-height:1.7;}
+
+        /* ===== 安装步骤 ===== */
+        .steps{margin-bottom:20px;}
+        .steps-title{
+            font-size:15px;font-weight:700;margin-bottom:14px;
+            display:flex;align-items:center;gap:8px;
+        }
+        .steps-title::before{
+            content:'';width:3px;height:16px;border-radius:2px;
+            background:linear-gradient(180deg,var(--blue),#5856D6);
+        }
+        .step{
+            display:flex;gap:14px;padding:11px 0;
+        }
+        .step+.step{border-top:1px solid rgba(255,255,255,0.03);}
+        .step-num{
+            width:26px;height:26px;min-width:26px;border-radius:50%;
+            background:rgba(255,255,255,0.06);color:var(--text2);
+            font-size:12px;font-weight:700;
+            display:flex;align-items:center;justify-content:center;
+            border:1px solid rgba(255,255,255,0.08);
+        }
+        .step-text{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6;padding-top:2px;}
+        .step-text b{color:var(--text);font-weight:600;}
+
+        /* ===== 温馨提示 ===== */
+        .tips{
+            background:rgba(255,149,0,0.06);border:1px solid rgba(255,149,0,0.1);
+            border-radius:14px;padding:14px 16px;margin-bottom:20px;
+            display:flex;gap:10px;
+        }
+        .tips-icon{flex-shrink:0;color:var(--orange);font-size:14px;line-height:1.6;}
+        .tips-text{font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;}
+
+        /* ===== 兼容性表格 ===== */
+        .compat{
+            background:var(--card);border:1px solid var(--card-border);
+            border-radius:16px;padding:20px 22px;margin-bottom:20px;
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+        }
+        .compat-title{
+            font-size:15px;font-weight:700;margin-bottom:14px;
+            display:flex;align-items:center;gap:8px;
+        }
+        .compat-title::before{
+            content:'';width:3px;height:16px;border-radius:2px;
+            background:linear-gradient(180deg,#5856D6,#AF52DE);
+        }
+        .compat-row{
+            display:flex;align-items:center;justify-content:space-between;
+            padding:12px 0;
+        }
+        .compat-row+.compat-row{border-top:1px solid rgba(255,255,255,0.04);}
+        .compat-ver{font-size:14px;font-weight:600;}
+        .compat-range{font-size:13px;color:var(--text2);}
+        .compat-tag{
+            padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;
+        }
+        .compat-tag.yes{background:rgba(52,199,89,0.12);color:var(--green);}
+        .compat-tag.no{background:rgba(255,59,48,0.1);color:var(--red);}
+
+        .footer{text-align:center;padding:16px 0;font-size:11px;color:var(--text3);}
+
+        /* ===== 动画 ===== */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        .anim{animation:fadeUp 0.45s ease-out both;}
+        .anim-d1{animation-delay:0.05s}
+        .anim-d2{animation-delay:0.1s}
+        .anim-d3{animation-delay:0.15s}
+        .anim-d4{animation-delay:0.2s}
+        .anim-d5{animation-delay:0.25s}
+        .anim-d6{animation-delay:0.3s}
+
+        /* ===== 安装弹窗 ===== */
+        .modal-mask{
+            display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.6);z-index:9999;
+            justify-content:center;align-items:center;
+            backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+        }
+        .modal-mask.show{display:flex;}
+        .modal{
+            background:rgba(30,30,48,0.97);border:1px solid rgba(255,255,255,0.1);
+            border-radius:24px;padding:30px 26px;max-width:310px;width:88%;
+            text-align:center;animation:fadeUp 0.3s ease-out;
+            box-shadow:0 24px 64px rgba(0,0,0,0.5);
+        }
+        .modal-title{font-size:18px;font-weight:700;margin-bottom:18px;}
+        .modal-steps{text-align:left;margin-bottom:20px;}
+        .modal-step{
+            display:flex;align-items:center;gap:10px;
+            padding:7px 0;color:rgba(255,255,255,0.65);font-size:13px;
+        }
+        .modal-step span:first-child{
+            width:22px;height:22px;min-width:22px;border-radius:50%;
+            background:linear-gradient(135deg,var(--blue),#5856D6);
+            color:#fff;font-size:11px;font-weight:700;
+            display:flex;align-items:center;justify-content:center;
+        }
+        .modal-progress{margin:16px 0;}
+        .modal-bar{
+            width:100%;height:4px;background:rgba(255,255,255,0.08);
+            border-radius:10px;overflow:hidden;margin-top:8px;
+        }
+        .modal-fill{
+            width:0%;height:100%;border-radius:10px;
+            background:linear-gradient(90deg,var(--blue),#5856D6);
+            transition:width 0.3s ease;
+        }
+        .modal-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);}
+        .modal-pct{color:var(--blue);font-weight:700;font-size:13px;}
+        .modal-close{
+            display:none;width:100%;padding:13px;border:none;border-radius:14px;
+            background:linear-gradient(135deg,var(--blue),#5856D6);
+            color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+        }
+        .modal-close:active{transform:scale(0.97);}
+    </style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- 安装弹窗 -->
+<div class="modal-mask" id="modal">
+    <div class="modal">
+        <div class="modal-title">正在安装</div>
+        <div class="modal-steps">
+            <div class="modal-step"><span>1</span>返回桌面等待安装完成</div>
+            <div class="modal-step"><span>2</span>打开「设置」→「通用」</div>
+            <div class="modal-step"><span>3</span>点击「VPN与设备管理」</div>
+            <div class="modal-step"><span>4</span>信任证书后即可打开</div>
+        </div>
+        <div class="modal-progress" id="modalProgress">
+            <div class="modal-top">
+                <span id="modalText">下载中...</span>
+                <span class="modal-pct" id="modalPct">0%</span>
+            </div>
+            <div class="modal-bar"><div class="modal-fill" id="modalFill"></div></div>
+        </div>
+        <button class="modal-close" id="modalClose">我知道了</button>
+    </div>
+</div>
+
+<div class="page">
+
+    <!-- 顶部 -->
+    <div class="app-header anim">
+        <img class="app-icon" src="icon@2x.png" alt="工具">
+        <div class="app-title">工具</div>
+        <div class="app-subtitle">v1.0.6 · 8.5 MB · 企业签名</div>
+    </div>
+
+    <!-- 设备检测 -->
+    <div class="detect anim anim-d1" id="detectCard">
+        <div class="detect-head">
+            <span class="dot"></span>
+            设备检测
+        </div>
+        <div class="detect-row">
+            <span class="detect-label">设备</span>
+            <span class="detect-val loading" id="dDevice">检测中</span>
+        </div>
+        <div class="detect-row">
+            <span class="detect-label">系统</span>
+            <span class="detect-val loading" id="dOS">检测中</span>
+        </div>
+        <div class="detect-row">
+            <span class="detect-label">状态</span>
+            <span class="detect-val loading" id="dStatus">检测中</span>
+        </div>
+    </div>
+
+    <!-- 动态内容区（JS 填充） -->
+    <div id="mainContent"></div>
+
+    <!-- 安装步骤 -->
+    <div class="steps anim anim-d5" id="stepsSection">
+        <div class="steps-title">安装步骤</div>
+        <div class="step">
+            <span class="step-num">1</span>
+            <span class="step-text">点击上方 <b>「安装」</b> 按钮</span>
+        </div>
+        <div class="step">
+            <span class="step-num">2</span>
+            <span class="step-text">弹窗提示后点击 <b>「安装」</b></span>
+        </div>
+        <div class="step">
+            <span class="step-num">3</span>
+            <span class="step-text">返回桌面，等待安装完成</span>
+        </div>
+        <div class="step">
+            <span class="step-num">4</span>
+            <span class="step-text">打开 <b>设置 → 通用 → VPN与设备管理</b></span>
+        </div>
+        <div class="step">
+            <span class="step-num">5</span>
+            <span class="step-text">找到描述文件，点击 <b>「信任」</b></span>
+        </div>
+        <div class="step">
+            <span class="step-num">6</span>
+            <span class="step-text">回到桌面打开 APP 即可使用 🎉</span>
+        </div>
+    </div>
+
+    <!-- 温馨提示 -->
+    <div class="tips anim anim-d6">
+        <span class="tips-icon">💡</span>
+        <span class="tips-text">请使用 iPhone/iPad 自带的 Safari 浏览器打开此页面。安装完成后需在「设置 → 通用 → VPN与设备管理」中信任企业证书，否则无法打开 APP。</span>
+    </div>
+
+    <!-- 兼容性 -->
+    <div class="compat anim anim-d6">
+        <div class="compat-title">版本兼容性</div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">专用版</div>
+                <div class="compat-range">iOS 14.0 — 15.1.1</div>
+            </div>
+            <span class="compat-tag yes">支持</span>
+        </div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">通用版</div>
+                <div class="compat-range">iOS 15.2 — 16.6.1</div>
+            </div>
+            <span class="compat-tag yes">支持</span>
+        </div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">其他版本</div>
+                <div class="compat-range">iOS &lt; 14.0 或 &gt; 16.6.1</div>
+            </div>
+            <span class="compat-tag no">不支持</span>
+        </div>
+    </div>
+
+    <div class="footer">© 2026</div>
+</div>
+
+<script>
+(function(){
+    // ===== 配置 =====
+    var base = location.origin + location.pathname.replace(/index\.html$/,'');
+    var plist14 = base + 'manifest-14.plist';
+    var plistUni = base + 'manifest-universal.plist';
+    var link14 = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plist14);
+    var linkUni = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plistUni);
+
+    // ===== 版本号映射（精确到小版本） =====
+    var vMap = {
+        '14.0':14,'14.1':14.1,'14.2':14.2,'14.3':14.3,'14.4':14.4,
+        '14.5':14.5,'14.6':14.6,'14.7':14.7,'14.8':14.8,'14.8.1':14.81,
+        '15.0':15,'15.0.1':15.01,'15.0.2':15.02,
+        '15.1':15.1,'15.1.1':15.11,
+        '15.2':15.2,'15.2.1':15.21,
+        '15.3':15.3,'15.3.1':15.31,
+        '15.4':15.4,'15.4.1':15.41,
+        '15.5':15.5,
+        '15.6':15.6,'15.6.1':15.61,
+        '16.0':16,'16.0.1':16.01,'16.0.2':16.02,'16.0.3':16.03,
+        '16.1':16.1,'16.1.1':16.11,'16.1.2':16.12,
+        '16.2':16.2,
+        '16.3':16.3,'16.3.1':16.31,
+        '16.4':16.4,'16.4.1':16.41,
+        '16.5':16.5,'16.5.1':16.51,
+        '16.6':16.6,'16.6.1':16.61
+    };
+    function vNum(s){return vMap[s]||parseFloat(s)}
+
+    // ===== 设备型号 =====
+    var dMap={
+        'iPhone8,1':'iPhone 6s','iPhone8,2':'iPhone 6s Plus','iPhone8,4':'iPhone SE',
+        'iPhone9,1':'iPhone 7','iPhone9,2':'iPhone 7 Plus','iPhone9,3':'iPhone 7','iPhone9,4':'iPhone 7 Plus',
+        'iPhone10,1':'iPhone 8','iPhone10,2':'iPhone 8 Plus',
+        'iPhone10,3':'iPhone X','iPhone10,4':'iPhone 8','iPhone10,5':'iPhone 8 Plus','iPhone10,6':'iPhone X',
+        'iPhone11,2':'iPhone XS','iPhone11,4':'iPhone XS Max','iPhone11,6':'iPhone XS Max',
+        'iPhone11,8':'iPhone XR',
+        'iPhone12,1':'iPhone 11','iPhone12,3':'iPhone 11 Pro','iPhone12,5':'iPhone 11 Pro Max',
+        'iPhone12,8':'iPhone SE 2',
+        'iPhone13,1':'iPhone 12 mini','iPhone13,2':'iPhone 12','iPhone13,3':'iPhone 12 Pro',
+        'iPhone13,4':'iPhone 12 Pro Max',
+        'iPhone14,2':'iPhone 13 Pro','iPhone14,3':'iPhone 13 Pro Max',
+        'iPhone14,4':'iPhone 13 mini','iPhone14,5':'iPhone 13',
+        'iPhone14,6':'iPhone SE 3',
+        'iPhone14,7':'iPhone 14','iPhone14,8':'iPhone 14 Plus',
+        'iPhone15,2':'iPhone 14 Pro','iPhone15,3':'iPhone 14 Pro Max',
+        'iPhone15,4':'iPhone 15','iPhone15,5':'iPhone 15 Plus',
+        'iPhone16,1':'iPhone 15 Pro','iPhone16,2':'iPhone 15 Pro Max'
+    };
+
+    // ===== DOM =====
+    var dDevice=document.getElementById('dDevice');
+    var dOS=document.getElementById('dOS');
+    var dStatus=document.getElementById('dStatus');
+    var main=document.getElementById('mainContent');
+
+    // ===== 检测 =====
+    var ua=navigator.userAgent;
+    var isIOS=/iPad|iPhone|iPod/.test(ua)||(ua.indexOf('Mac')>-1&&navigator.maxTouchPoints>1);
+
+    if(!isIOS){
+        dDevice.textContent='非 iOS 设备';dDevice.className='detect-val err';
+        dOS.textContent='—';dOS.className='detect-val err';
+        dStatus.textContent='不支持';dStatus.className='detect-val err';
+        main.innerHTML='<div class="non-ios anim anim-d2">'+
+            '<div class="warn-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div>'+
+            '<div class="warn-title">请使用 Safari 打开</div>'+
+            '<div class="warn-desc">此页面仅支持 iPhone / iPad 安装。<br>请使用自带的 Safari 浏览器重新打开本页面。</div></div>';
+        return;
+    }
+
+    // 设备名
+    var idM=ua.match(/(iPhone\d+,\d+)/);
+    dDevice.textContent=idM?(dMap[idM[1]]||idM[1]):'iOS 设备';
+    dDevice.className='detect-val';
+
+    // 系统版本
+    var vM=ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
+    var iosVer=null;
+    if(vM){iosVer=vM[1].replace(/_/g,'.');dOS.textContent='iOS '+iosVer;dOS.className='detect-val';}
+    else{dOS.textContent='未知';dOS.className='detect-val warn';}
+
+    if(!iosVer){
+        dStatus.textContent='无法判断';dStatus.className='detect-val warn';
+        main.innerHTML=renderBoth(true);
+        bindModal();
+        bindAlt();
+        return;
+    }
+
+    var v=vNum(iosVer);
+    var ok14=(v>=14&&v<=15.11);
+    var okUni=(v>=15.2&&v<=16.61);
+
+    if(ok14&&!okUni){
+        dStatus.textContent='✓ 专用版';dStatus.className='detect-val ok';
+        main.innerHTML=renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
+            +(ok14&&okUni?'':'')+renderAlt('通用版','iOS 15.2 — 16.6.1',linkUni,true);
+    }else if(okUni&&!ok14){
+        dStatus.textContent='✓ 通用版';dStatus.className='detect-val ok';
+        main.innerHTML=renderMain('通用版','iOS 15.2 — 16.6.1',linkUni,'secondary')
+            +renderAlt('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,true);
+    }else if(ok14&&okUni){
+        dStatus.textContent='✓ 推荐 专用版';dStatus.className='detect-val ok';
+        main.innerHTML=renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
+            +renderAlt('通用版','iOS 15.2 — 16.6.1',linkUni,false);
+    }else{
+        dStatus.textContent='✗ 暂不支持';dStatus.className='detect-val err';
+        var reason=v<14?'您的系统版本（iOS '+iosVer+'）过低，最低需要 iOS 14.0。':'您的系统版本（iOS '+iosVer+'）过高，目前最高支持 iOS 16.6.1。';
+        main.innerHTML='<div class="unsupported anim anim-d2">'+
+            '<div class="err-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>'+
+            '<div class="err-title">暂不支持您的系统版本</div>'+
+            '<div class="err-desc">'+reason+'<br>请持续关注后续更新。</div></div>';
+    }
+
+    bindModal();
+    bindAlt();
+})();
+
+// ===== 渲染主推荐卡片 =====
+function renderMain(name,range,href,type){
+    var cls=type==='primary'?'':'style="background:linear-gradient(135deg,#5856D6,#AF52DE);box-shadow:0 6px 24px rgba(88,86,214,0.3)"';
+    return '<div class="action anim anim-d2">'+
+        '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>'+
+        '<div class="action-name">'+name+'</div>'+
+        '<div class="action-range">适用 <b>'+range+'</b></div>'+
+        '<a class="install-btn" href="'+href+'" '+cls+'>'+
+            '<svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>'+
+            '安 装'+
+            '<span class="arrow">→</span>'+
+        '</a>'+
+    '</div>';
+}
+
+// ===== 渲染备选版本（折叠） =====
+function renderAlt(name,range,href,disabled){
+    return '<div class="alt anim anim-d3" id="altCard">'+
+        '<div class="alt-head" id="altHead">'+
+            '<span class="alt-title">其他版本：'+name+'</span>'+
+            '<span class="alt-arrow">▼</span>'+
+        '</div>'+
+        '<div class="alt-body">'+
+            '<div class="alt-name">'+name+'</div>'+
+            '<div class="alt-range">适用 '+range+'</div>'+
+            '<a class="alt-btn" href="'+href+'"'+(disabled?' style="opacity:0.35;pointer-events:none"':'')+'>'+
+                '下载此版本'+
+            '</a>'+
+        '</div>'+
+    '</div>';
+}
+
+function renderBoth(unknown){
+    return renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
+        +renderMain('通用版','iOS 15.2 — 16.6.1',linkUni,'secondary');
+}
+
+// ===== 折叠交互 =====
+function bindAlt(){
+    var h=document.getElementById('altHead');
+    var c=document.getElementById('altCard');
+    if(h&&c){h.onclick=function(){c.classList.toggle('open')};}
+}
+
+// ===== 安装弹窗 =====
+function bindModal(){
+    var modal=document.getElementById('modal');
+    var close=document.getElementById('modalClose');
+    var fill=document.getElementById('modalFill');
+    var pct=document.getElementById('modalPct');
+    var txt=document.getElementById('modalText');
+
+    document.querySelectorAll('.install-btn:not(.disabled),.alt-btn:not([style*="pointer-events"])').forEach(function(b){
+        b.addEventListener('click',function(e){
+            e.preventDefault();
+            var url=this.getAttribute('href');
+            location.href=url;
+
+            setTimeout(function(){
+                fill.style.width='0%';pct.textContent='0%';txt.textContent='下载中...';
+                close.style.display='none';
+                modal.classList.add('show');
+
+                var p=0;
+                var t=setInterval(function(){
+                    p=Math.min(p+Math.random()*8+3,96);
+                    var r=Math.round(p);
+                    fill.style.width=r+'%';pct.textContent=r+'%';
+                    if(p>=96){clearInterval(t);setTimeout(function(){
+                        fill.style.width='100%';pct.textContent='100%';
+                        txt.textContent='安装完成';close.style.display='block';
+                    },400);}
+                },150);
+            },2500);
+        });
+    });
+
+    close.onclick=function(){modal.classList.remove('show');};
+    modal.onclick=function(e){if(e.target===modal&&close.style.display==='block')modal.classList.remove('show');};
+}
+})();
+</script>
+</body>
+</html>
