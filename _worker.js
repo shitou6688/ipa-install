@@ -14,10 +14,10 @@ export default {
       var path = url.pathname.replace('/download/', '');
       var filename = path.split('/').pop();
 
-      // 英文名 → GitHub 上的中文真实文件名（避免编码问题）
+      // 英文名 → GitHub 上的真实文件名
       var fileMap = {
-        'ipa-14.ipa': '14.0-15.1.1%E4%B8%93%E7%94%A8.ipa',
-        'ipa-universal.ipa': '%E9%80%9A%E7%94%A8.ipa'
+        'ipa-14.ipa': '14.0-15.1.1.ipa',
+        'ipa-universal.ipa': 'default.ipa'
       };
       var realName = fileMap[filename] || filename;
 
