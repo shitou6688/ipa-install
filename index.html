@@ -433,6 +433,8 @@
 
 <script>
 (function(){
+    try {
+
     // ===== 配置 =====
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
     var plist14 = base + 'manifest-14.plist';
@@ -440,10 +442,60 @@
     var link14 = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plist14);
     var linkUni = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plistUni);
 
-    // ===== 版本号映射（精确到小版本） =====
+    // ===== 渲染函数（全部在 IIFE 内部） =====
+    function renderMain(name, range, href, type) {
+        var extra = type === 'primary' ? '' : 'style="background:linear-gradient(135deg,#5856D6,#AF52DE);box-shadow:0 6px 24px rgba(88,86,214,0.3)"';
+        return '<div class="action anim anim-d2">' +
+            '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>' +
+            '<div class="action-name">' + name + '</div>' +
+            '<div class="action-range">适用 <b>' + range + '</b></div>' +
+            '<a class="install-btn" href="' + href + '" ' + extra + '>' +
+                '<svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>' +
+                '安 装<span class="arrow">→</span>' +
+            '</a></div>';
+    }
+
+    function renderAlt(name, range, href, disabled) {
+        var dis = disabled ? ' style="opacity:0.35;pointer-events:none"' : '';
+        return '<div class="alt anim anim-d3" id="altCard">' +
+            '<div class="alt-head" id="altHead">' +
+                '<span class="alt-title">其他版本：' + name + '</span>' +
+                '<span class="alt-arrow">▼</span>' +
+            '</div>' +
+            '<div class="alt-body">' +
+                '<div class="alt-name">' + name + '</div>' +
+                '<div class="alt-range">适用 ' + range + '</div>' +
+                '<a class="alt-btn" href="' + href + '"' + dis + '>下载此版本</a>' +
+            '</div></div>';
+    }
+
+    function renderNonIOS() {
+        return '<div class="non-ios anim anim-d2">' +
+            '<div class="warn-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div>' +
+            '<div class="warn-title">请使用 Safari 打开</div>' +
+            '<div class="warn-desc">此页面仅支持 iPhone / iPad 安装。<br>请使用自带的 Safari 浏览器重新打开本页面。</div></div>';
+    }
+
+    function renderUnsupported(iosVer, tooLow) {
+        var reason = tooLow
+            ? '您的系统版本（iOS ' + iosVer + '）过低，最低需要 iOS 14.0。'
+            : '您的系统版本（iOS ' + iosVer + '）过高，目前最高支持 iOS 16.6.1。';
+        return '<div class="unsupported anim anim-d2">' +
+            '<div class="err-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>' +
+            '<div class="err-title">暂不支持您的系统版本</div>' +
+            '<div class="err-desc">' + reason + '<br>请持续关注后续更新。</div></div>';
+    }
+
+    function renderUnknown() {
+        return renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') +
+               renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary');
+    }
+
+    // ===== 版本号映射 =====
     var vMap = {
         '14.0':14,'14.1':14.1,'14.2':14.2,'14.3':14.3,'14.4':14.4,
         '14.5':14.5,'14.6':14.6,'14.7':14.7,'14.8':14.8,'14.8.1':14.81,
+        '14.8.2':14.82,
         '15.0':15,'15.0.1':15.01,'15.0.2':15.02,
         '15.1':15.1,'15.1.1':15.11,
         '15.2':15.2,'15.2.1':15.21,
@@ -459,10 +511,19 @@
         '16.5':16.5,'16.5.1':16.51,
         '16.6':16.6,'16.6.1':16.61
     };
-    function vNum(s){return vMap[s]||parseFloat(s)}
+
+    // 安全的版本号解析：拆分 [主].[次].[补] 然后拼成数字
+    function vNum(s) {
+        if (vMap[s] !== undefined) return vMap[s];
+        var parts = s.split('.');
+        var major = parseInt(parts[0]) || 0;
+        var minor = parseInt(parts[1]) || 0;
+        var patch = parseInt(parts[2]) || 0;
+        return major + minor / 100 + patch / 10000;
+    }
 
     // ===== 设备型号 =====
-    var dMap={
+    var dMap = {
         'iPhone8,1':'iPhone 6s','iPhone8,2':'iPhone 6s Plus','iPhone8,4':'iPhone SE',
         'iPhone9,1':'iPhone 7','iPhone9,2':'iPhone 7 Plus','iPhone9,3':'iPhone 7','iPhone9,4':'iPhone 7 Plus',
         'iPhone10,1':'iPhone 8','iPhone10,2':'iPhone 8 Plus',
@@ -479,158 +540,158 @@
         'iPhone14,7':'iPhone 14','iPhone14,8':'iPhone 14 Plus',
         'iPhone15,2':'iPhone 14 Pro','iPhone15,3':'iPhone 14 Pro Max',
         'iPhone15,4':'iPhone 15','iPhone15,5':'iPhone 15 Plus',
-        'iPhone16,1':'iPhone 15 Pro','iPhone16,2':'iPhone 15 Pro Max'
+        'iPhone16,1':'iPhone 15 Pro','iPhone16,2':'iPhone 15 Pro Max',
+        'iPhone17,1':'iPhone 16','iPhone17,2':'iPhone 16 Plus',
+        'iPhone17,3':'iPhone 16 Pro','iPhone17,4':'iPhone 16 Pro Max',
+        'iPhone17,5':'iPhone 16e'
     };
 
     // ===== DOM =====
-    var dDevice=document.getElementById('dDevice');
-    var dOS=document.getElementById('dOS');
-    var dStatus=document.getElementById('dStatus');
-    var main=document.getElementById('mainContent');
+    var dDevice = document.getElementById('dDevice');
+    var dOS     = document.getElementById('dOS');
+    var dStatus = document.getElementById('dStatus');
+    var main    = document.getElementById('mainContent');
 
-    // ===== 检测 =====
-    var ua=navigator.userAgent;
-    var isIOS=/iPad|iPhone|iPod/.test(ua)||(ua.indexOf('Mac')>-1&&navigator.maxTouchPoints>1);
+    // ===== 开始检测 =====
+    var ua = navigator.userAgent;
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (ua.indexOf('Mac') > -1 && navigator.maxTouchPoints > 1);
 
-    if(!isIOS){
-        dDevice.textContent='非 iOS 设备';dDevice.className='detect-val err';
-        dOS.textContent='—';dOS.className='detect-val err';
-        dStatus.textContent='不支持';dStatus.className='detect-val err';
-        main.innerHTML='<div class="non-ios anim anim-d2">'+
-            '<div class="warn-icon"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg></div>'+
-            '<div class="warn-title">请使用 Safari 打开</div>'+
-            '<div class="warn-desc">此页面仅支持 iPhone / iPad 安装。<br>请使用自带的 Safari 浏览器重新打开本页面。</div></div>';
+    // --- 非 iOS ---
+    if (!isIOS) {
+        dDevice.textContent = '非 iOS 设备'; dDevice.className = 'detect-val err';
+        dOS.textContent = '—'; dOS.className = 'detect-val err';
+        dStatus.textContent = '不支持'; dStatus.className = 'detect-val err';
+        main.innerHTML = renderNonIOS();
         return;
     }
 
-    // 设备名
-    var idM=ua.match(/(iPhone\d+,\d+)/);
-    dDevice.textContent=idM?(dMap[idM[1]]||idM[1]):'iOS 设备';
-    dDevice.className='detect-val';
+    // --- 设备名 ---
+    var idM = ua.match(/(iPhone\d+,\d+)/);
+    dDevice.textContent = idM ? (dMap[idM[1]] || idM[1]) : 'iOS 设备';
+    dDevice.className = 'detect-val';
 
-    // 系统版本
-    var vM=ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
-    var iosVer=null;
-    if(vM){iosVer=vM[1].replace(/_/g,'.');dOS.textContent='iOS '+iosVer;dOS.className='detect-val';}
-    else{dOS.textContent='未知';dOS.className='detect-val warn';}
+    // --- 系统版本 ---
+    var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
+    var iosVer = null;
+    if (vM) {
+        iosVer = vM[1].replace(/_/g, '.');
+        dOS.textContent = 'iOS ' + iosVer;
+        dOS.className = 'detect-val';
+    } else {
+        dOS.textContent = '未知';
+        dOS.className = 'detect-val warn';
+    }
 
-    if(!iosVer){
-        dStatus.textContent='无法判断';dStatus.className='detect-val warn';
-        main.innerHTML=renderBoth(true);
-        bindModal();
-        bindAlt();
+    // --- 无法检测版本 ---
+    if (!iosVer) {
+        dStatus.textContent = '无法判断';
+        dStatus.className = 'detect-val warn';
+        main.innerHTML = renderUnknown();
+        initInteractions();
         return;
     }
 
-    var v=vNum(iosVer);
-    var ok14=(v>=14&&v<=15.11);
-    var okUni=(v>=15.2&&v<=16.61);
+    // --- 版本兼容性判断 ---
+    var v = vNum(iosVer);
+    var ok14  = (v >= 14    && v <= 15.1101);  // 14.0 ~ 15.1.1
+    var okUni = (v >= 15.02 && v <= 16.6101);  // 15.2 ~ 16.6.1
 
-    if(ok14&&!okUni){
-        dStatus.textContent='✓ 专用版';dStatus.className='detect-val ok';
-        main.innerHTML=renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
-            +(ok14&&okUni?'':'')+renderAlt('通用版','iOS 15.2 — 16.6.1',linkUni,true);
-    }else if(okUni&&!ok14){
-        dStatus.textContent='✓ 通用版';dStatus.className='detect-val ok';
-        main.innerHTML=renderMain('通用版','iOS 15.2 — 16.6.1',linkUni,'secondary')
-            +renderAlt('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,true);
-    }else if(ok14&&okUni){
-        dStatus.textContent='✓ 推荐 专用版';dStatus.className='detect-val ok';
-        main.innerHTML=renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
-            +renderAlt('通用版','iOS 15.2 — 16.6.1',linkUni,false);
-    }else{
-        dStatus.textContent='✗ 暂不支持';dStatus.className='detect-val err';
-        var reason=v<14?'您的系统版本（iOS '+iosVer+'）过低，最低需要 iOS 14.0。':'您的系统版本（iOS '+iosVer+'）过高，目前最高支持 iOS 16.6.1。';
-        main.innerHTML='<div class="unsupported anim anim-d2">'+
-            '<div class="err-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>'+
-            '<div class="err-title">暂不支持您的系统版本</div>'+
-            '<div class="err-desc">'+reason+'<br>请持续关注后续更新。</div></div>';
+    if (ok14 && !okUni) {
+        // 只支持专用版
+        dStatus.textContent = '✓ 专用版';
+        dStatus.className = 'detect-val ok';
+        main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary')
+            + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, true);
+    } else if (okUni && !ok14) {
+        // 只支持通用版
+        dStatus.textContent = '✓ 通用版';
+        dStatus.className = 'detect-val ok';
+        main.innerHTML = renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary')
+            + renderAlt('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, true);
+    } else if (ok14 && okUni) {
+        // 两个都支持（理论上不会出现，但兜底）
+        dStatus.textContent = '✓ 推荐 专用版';
+        dStatus.className = 'detect-val ok';
+        main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary')
+            + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, false);
+    } else {
+        // 都不支持
+        dStatus.textContent = '✗ 暂不支持';
+        dStatus.className = 'detect-val err';
+        main.innerHTML = renderUnsupported(iosVer, v < 14);
     }
 
-    bindModal();
-    bindAlt();
-})();
+    initInteractions();
 
-// ===== 渲染主推荐卡片 =====
-function renderMain(name,range,href,type){
-    var cls=type==='primary'?'':'style="background:linear-gradient(135deg,#5856D6,#AF52DE);box-shadow:0 6px 24px rgba(88,86,214,0.3)"';
-    return '<div class="action anim anim-d2">'+
-        '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>'+
-        '<div class="action-name">'+name+'</div>'+
-        '<div class="action-range">适用 <b>'+range+'</b></div>'+
-        '<a class="install-btn" href="'+href+'" '+cls+'>'+
-            '<svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>'+
-            '安 装'+
-            '<span class="arrow">→</span>'+
-        '</a>'+
-    '</div>';
-}
+    // ===== 交互绑定 =====
+    function initInteractions() {
+        // 折叠
+        var altHead = document.getElementById('altHead');
+        var altCard = document.getElementById('altCard');
+        if (altHead && altCard) {
+            altHead.onclick = function() { altCard.classList.toggle('open'); };
+        }
 
-// ===== 渲染备选版本（折叠） =====
-function renderAlt(name,range,href,disabled){
-    return '<div class="alt anim anim-d3" id="altCard">'+
-        '<div class="alt-head" id="altHead">'+
-            '<span class="alt-title">其他版本：'+name+'</span>'+
-            '<span class="alt-arrow">▼</span>'+
-        '</div>'+
-        '<div class="alt-body">'+
-            '<div class="alt-name">'+name+'</div>'+
-            '<div class="alt-range">适用 '+range+'</div>'+
-            '<a class="alt-btn" href="'+href+'"'+(disabled?' style="opacity:0.35;pointer-events:none"':'')+'>'+
-                '下载此版本'+
-            '</a>'+
-        '</div>'+
-    '</div>';
-}
+        // 安装弹窗
+        var modal = document.getElementById('modal');
+        var close = document.getElementById('modalClose');
+        var fill  = document.getElementById('modalFill');
+        var pct   = document.getElementById('modalPct');
+        var txt   = document.getElementById('modalText');
 
-function renderBoth(unknown){
-    return renderMain('14.0 - 15.1.1 专用版','iOS 14.0 — 15.1.1',link14,'primary')
-        +renderMain('通用版','iOS 15.2 — 16.6.1',linkUni,'secondary');
-}
+        document.querySelectorAll('.install-btn:not(.disabled), .alt-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var url = this.getAttribute('href');
+                if (!url || url === '#') return;
 
-// ===== 折叠交互 =====
-function bindAlt(){
-    var h=document.getElementById('altHead');
-    var c=document.getElementById('altCard');
-    if(h&&c){h.onclick=function(){c.classList.toggle('open')};}
-}
+                location.href = url;
 
-// ===== 安装弹窗 =====
-function bindModal(){
-    var modal=document.getElementById('modal');
-    var close=document.getElementById('modalClose');
-    var fill=document.getElementById('modalFill');
-    var pct=document.getElementById('modalPct');
-    var txt=document.getElementById('modalText');
+                setTimeout(function() {
+                    fill.style.width = '0%';
+                    pct.textContent = '0%';
+                    txt.textContent = '下载中...';
+                    close.style.display = 'none';
+                    modal.classList.add('show');
 
-    document.querySelectorAll('.install-btn:not(.disabled),.alt-btn:not([style*="pointer-events"])').forEach(function(b){
-        b.addEventListener('click',function(e){
-            e.preventDefault();
-            var url=this.getAttribute('href');
-            location.href=url;
-
-            setTimeout(function(){
-                fill.style.width='0%';pct.textContent='0%';txt.textContent='下载中...';
-                close.style.display='none';
-                modal.classList.add('show');
-
-                var p=0;
-                var t=setInterval(function(){
-                    p=Math.min(p+Math.random()*8+3,96);
-                    var r=Math.round(p);
-                    fill.style.width=r+'%';pct.textContent=r+'%';
-                    if(p>=96){clearInterval(t);setTimeout(function(){
-                        fill.style.width='100%';pct.textContent='100%';
-                        txt.textContent='安装完成';close.style.display='block';
-                    },400);}
-                },150);
-            },2500);
+                    var p = 0;
+                    var timer = setInterval(function() {
+                        p = Math.min(p + Math.random() * 8 + 3, 96);
+                        var r = Math.round(p);
+                        fill.style.width = r + '%';
+                        pct.textContent = r + '%';
+                        if (p >= 96) {
+                            clearInterval(timer);
+                            setTimeout(function() {
+                                fill.style.width = '100%';
+                                pct.textContent = '100%';
+                                txt.textContent = '安装完成';
+                                close.style.display = 'block';
+                            }, 400);
+                        }
+                    }, 150);
+                }, 2500);
+            });
         });
-    });
 
-    close.onclick=function(){modal.classList.remove('show');};
-    modal.onclick=function(e){if(e.target===modal&&close.style.display==='block')modal.classList.remove('show');};
-}
+        close.onclick = function() { modal.classList.remove('show'); };
+        modal.onclick = function(e) {
+            if (e.target === modal && close.style.display === 'block') modal.classList.remove('show');
+        };
+    }
+
+    } catch(err) {
+        // 万一出错，至少停止转圈，显示基本信息
+        document.getElementById('dDevice').textContent = '检测出错';
+        document.getElementById('dDevice').className = 'detect-val err';
+        document.getElementById('dOS').className = 'detect-val err';
+        document.getElementById('dStatus').className = 'detect-val err';
+        document.getElementById('dStatus').textContent = '出错';
+        document.getElementById('mainContent').innerHTML =
+            '<div class="unsupported anim anim-d2">' +
+            '<div class="err-title">页面加载出错</div>' +
+            '<div class="err-desc">请刷新页面重试，或使用 Safari 浏览器打开。</div></div>';
+    }
 })();
 </script>
 </body>
