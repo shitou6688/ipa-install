@@ -14,16 +14,25 @@ export default {
 
     // 代理 GitHub Release 下载
     if (url.pathname.startsWith('/download/')) {
-      const path = url.pathname.replace('/download/', '');
-      const githubURL = 'https://github.com/shitou6688/ipa-install/releases/download/' + path;
+      var rawPath = url.pathname.replace('/download/', '');
+      // 正确处理中文文件名：先解码再编码，避免双重编码
+      var safePath = decodeURIComponent(rawPath)
+        .split('/')
+        .map(function(s) { return encodeURIComponent(s); })
+        .join('/');
+      var githubURL = 'https://github.com/shitou6688/ipa-install/releases/download/' + safePath;
 
       try {
-        const resp = await fetch(githubURL, {
+        var resp = await fetch(githubURL, {
           headers: { 'User-Agent': 'Mozilla/5.0' },
           redirect: 'follow',
         });
 
-        const headers = new Headers(resp.headers);
+        if (!resp.ok) {
+          return new Response('Download failed: ' + resp.status + ' ' + githubURL, { status: 502 });
+        }
+
+        var headers = new Headers(resp.headers);
         headers.set('Access-Control-Allow-Origin', '*');
 
         return new Response(resp.body, {
@@ -32,11 +41,21 @@ export default {
           headers: headers,
         });
       } catch (e) {
-        return new Response('下载失败，请稍后重试', { status: 502 });
+        return new Response('Download error: ' + e.message, { status: 502 });
       }
     }
 
-    // 其他请求交给静态文件处理
-    return env.ASSETS.fetch(request);
+    // 静态文件（给 plist 加上正确的 MIME 类型）
+    var response = await env.ASSETS.fetch(request);
+    if (response && url.pathname.endsWith('.plist')) {
+      var newHeaders = new Headers(response.headers);
+      newHeaders.set('Content-Type', 'application/xml');
+      return new Response(response.body, {
+        status: response.status,
+        headers: newHeaders,
+      });
+    }
+
+    return response;
   }
 };
