@@ -402,7 +402,33 @@
         <span class="tips-text">请使用 iPhone/iPad 自带的 Safari 浏览器打开此页面。安装完成后需在「设置 → 通用 → VPN与设备管理」中信任企业证书，否则无法打开 APP。</span>
     </div>
 
-    <!-- 温馨提示 -->
+    <!-- 兼容性 -->
+    <div class="compat anim anim-d6">
+        <div class="compat-title">版本兼容性</div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">专用版</div>
+                <div class="compat-range">iOS 14.0 — 15.1.1</div>
+            </div>
+            <span class="compat-tag yes">支持</span>
+        </div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">通用版</div>
+                <div class="compat-range">iOS 15.2 — 16.6.1</div>
+            </div>
+            <span class="compat-tag yes">支持</span>
+        </div>
+        <div class="compat-row">
+            <div>
+                <div class="compat-ver">其他版本</div>
+                <div class="compat-range">iOS &lt; 14.0 或 &gt; 16.6.1</div>
+            </div>
+            <span class="compat-tag no">不支持</span>
+        </div>
+    </div>
+
+    <div class="footer">© 2026</div>
 </div>
 
 <script>
@@ -496,66 +522,29 @@
         return major + minor / 100 + patch / 10000;
     }
 
-    // ===== 通过屏幕分辨率识别设备型号 =====
-    // UA 硬件标识映射（仅 iOS 12 及以下有效，作为回退）
+    // ===== 设备型号 =====
     var dMap = {
-        'iPhone7,1':'iPhone 6s','iPhone7,2':'iPhone 6s Plus','iPhone8,1':'iPhone 7','iPhone8,2':'iPhone 7 Plus',
-        'iPhone8,4':'iPhone SE (1st)','iPhone9,1':'iPhone 8','iPhone9,2':'iPhone 8 Plus',
-        'iPhone10,3':'iPhone X','iPhone10,6':'iPhone X',
-        'iPhone11,2':'iPhone XS','iPhone11,4':'iPhone XS Max','iPhone11,6':'iPhone XS Max','iPhone11,8':'iPhone XR',
-        'iPhone12,1':'iPhone 11','iPhone12,3':'iPhone 11 Pro','iPhone12,5':'iPhone 11 Pro Max','iPhone12,8':'iPhone SE (2nd)',
-        'iPhone13,1':'iPhone 12 mini','iPhone13,2':'iPhone 12','iPhone13,3':'iPhone 12 Pro','iPhone13,4':'iPhone 12 Pro Max',
-        'iPhone14,2':'iPhone 13 Pro','iPhone14,3':'iPhone 13 Pro Max','iPhone14,4':'iPhone 13 mini','iPhone14,5':'iPhone 13',
-        'iPhone14,6':'iPhone SE (3rd)','iPhone14,7':'iPhone 14','iPhone14,8':'iPhone 14 Plus',
+        'iPhone8,1':'iPhone 6s','iPhone8,2':'iPhone 6s Plus','iPhone8,4':'iPhone SE',
+        'iPhone9,1':'iPhone 7','iPhone9,2':'iPhone 7 Plus','iPhone9,3':'iPhone 7','iPhone9,4':'iPhone 7 Plus',
+        'iPhone10,1':'iPhone 8','iPhone10,2':'iPhone 8 Plus',
+        'iPhone10,3':'iPhone X','iPhone10,4':'iPhone 8','iPhone10,5':'iPhone 8 Plus','iPhone10,6':'iPhone X',
+        'iPhone11,2':'iPhone XS','iPhone11,4':'iPhone XS Max','iPhone11,6':'iPhone XS Max',
+        'iPhone11,8':'iPhone XR',
+        'iPhone12,1':'iPhone 11','iPhone12,3':'iPhone 11 Pro','iPhone12,5':'iPhone 11 Pro Max',
+        'iPhone12,8':'iPhone SE 2',
+        'iPhone13,1':'iPhone 12 mini','iPhone13,2':'iPhone 12','iPhone13,3':'iPhone 12 Pro',
+        'iPhone13,4':'iPhone 12 Pro Max',
+        'iPhone14,2':'iPhone 13 Pro','iPhone14,3':'iPhone 13 Pro Max',
+        'iPhone14,4':'iPhone 13 mini','iPhone14,5':'iPhone 13',
+        'iPhone14,6':'iPhone SE 3',
+        'iPhone14,7':'iPhone 14','iPhone14,8':'iPhone 14 Plus',
         'iPhone15,2':'iPhone 14 Pro','iPhone15,3':'iPhone 14 Pro Max',
         'iPhone15,4':'iPhone 15','iPhone15,5':'iPhone 15 Plus',
         'iPhone16,1':'iPhone 15 Pro','iPhone16,2':'iPhone 15 Pro Max',
-        'iPhone17,1':'iPhone 16','iPhone17,2':'iPhone 16 Plus','iPhone17,3':'iPhone 16 Pro','iPhone17,4':'iPhone 16 Pro Max',
+        'iPhone17,1':'iPhone 16','iPhone17,2':'iPhone 16 Plus',
+        'iPhone17,3':'iPhone 16 Pro','iPhone17,4':'iPhone 16 Pro Max',
         'iPhone17,5':'iPhone 16e'
     };
-
-    function detectDevice(iosMajor) {
-        var w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
-        if (w > h) { var t = w; w = h; h = t; }
-
-        // 先尝试 UA 硬件标识（仅 iOS 12 及以下有效）
-        var idM = navigator.userAgent.match(/((?:iPhone|iPad)\d+,\d+)/);
-        if (idM && dMap[idM[1]]) return dMap[idM[1]];
-
-        // iOS 13+ 通过屏幕分辨率 + 像素比检测
-        if (w === 320 && h === 568) return 'iPhone SE (1st)';
-        if (w === 375 && h === 667 && dpr === 2) return iosMajor >= 15 ? 'iPhone SE (2nd)' : 'iPhone 6s / 7 / 8';
-        if (w === 375 && h === 667 && dpr === 3) return 'iPhone SE (3rd)';
-        if (w === 375 && h === 812 && dpr === 3) {
-            if (iosMajor >= 15) return 'iPhone 12 mini / 13 mini';
-            return 'iPhone X / XS / 11 Pro';
-        }
-        if (w === 414 && h === 736 && dpr === 3) return 'iPhone 6s+ / 7+ / 8+';
-        if (w === 414 && h === 896 && dpr === 2) return 'iPhone XR / 11';
-        if (w === 414 && h === 896 && dpr === 3) return 'iPhone XS Max / 11 Pro Max';
-        if (w === 390 && h === 844 && dpr === 3) {
-            if (iosMajor >= 17) return 'iPhone 13 / 14';
-            return 'iPhone 12 / 13 / 14';
-        }
-        if (w === 428 && h === 926 && dpr === 3) {
-            if (iosMajor >= 17) return 'iPhone 13 Pro Max / 14+';
-            return 'iPhone 12 Pro Max / 13 Pro Max';
-        }
-        if (w === 393 && h === 852 && dpr === 3) {
-            if (iosMajor >= 18) return 'iPhone 16 / 16e';
-            if (iosMajor >= 17) return 'iPhone 15 / 15 Pro';
-            return 'iPhone 14 Pro';
-        }
-        if (w === 430 && h === 932 && dpr === 3) {
-            if (iosMajor >= 18) return 'iPhone 16 Pro Max';
-            if (iosMajor >= 17) return 'iPhone 15 Pro Max';
-            return 'iPhone 14 Pro Max';
-        }
-        if (w === 402 && h === 874 && dpr === 3) return 'iPhone 16 Pro';
-        if (w === 440 && h === 956 && dpr === 3) return 'iPhone 16 Pro Max';
-        if (/iPad/.test(navigator.userAgent)) return 'iPad';
-        return 'iPhone';
-    }
 
     // ===== DOM =====
     var dDevice = document.getElementById('dDevice');
@@ -577,13 +566,12 @@
     }
 
     // --- 设备名 ---
-    var iosMajor = 0;
-    var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
-    if (vM) iosMajor = parseInt(vM[1].split('_')[0]) || 0;
-    dDevice.textContent = detectDevice(iosMajor);
+    var idM = ua.match(/(iPhone\d+,\d+)/);
+    dDevice.textContent = idM ? (dMap[idM[1]] || idM[1]) : 'iOS 设备';
     dDevice.className = 'detect-val';
 
     // --- 系统版本 ---
+    var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
     var iosVer = null;
     if (vM) {
         iosVer = vM[1].replace(/_/g, '.');
