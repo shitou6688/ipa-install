@@ -1,2 +1,4 @@
 /*.plist
   Content-Type: application/xml
+/*.ipa
+  Content-Type: application/octet-stream
