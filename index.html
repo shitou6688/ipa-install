@@ -545,6 +545,26 @@
         'iPhone17,5':'iPhone 16e'
     };
 
+    // ===== 屏幕分辨率识别设备型号 =====
+    function detectDevice(iosMajor) {
+        var w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
+        if (w > h) { var t = w; w = h; h = t; }
+        if (w === 320 && h === 568) return 'iPhone SE (1st)';
+        if (w === 375 && h === 667 && dpr === 2) return iosMajor >= 15 ? 'iPhone SE (2nd)' : 'iPhone 6s / 7 / 8';
+        if (w === 375 && h === 667 && dpr === 3) return 'iPhone SE (3rd)';
+        if (w === 375 && h === 812 && dpr === 3) { if (iosMajor >= 15) return 'iPhone 12 mini / 13 mini'; return 'iPhone X / XS / 11 Pro'; }
+        if (w === 414 && h === 736 && dpr === 3) return 'iPhone 6s+ / 7+ / 8+';
+        if (w === 414 && h === 896 && dpr === 2) return 'iPhone XR / 11';
+        if (w === 414 && h === 896 && dpr === 3) return 'iPhone XS Max / 11 Pro Max';
+        if (w === 390 && h === 844 && dpr === 3) { if (iosMajor >= 17) return 'iPhone 13 / 14'; return 'iPhone 12 / 13 / 14'; }
+        if (w === 428 && h === 926 && dpr === 3) { if (iosMajor >= 17) return 'iPhone 13 Pro Max / 14+'; return 'iPhone 12 Pro Max / 13 Pro Max'; }
+        if (w === 393 && h === 852 && dpr === 3) { if (iosMajor >= 18) return 'iPhone 16 / 16e'; if (iosMajor >= 17) return 'iPhone 15 / 15 Pro'; return 'iPhone 14 Pro'; }
+        if (w === 430 && h === 932 && dpr === 3) { if (iosMajor >= 18) return 'iPhone 16 Pro Max'; if (iosMajor >= 17) return 'iPhone 15 Pro Max'; return 'iPhone 14 Pro Max'; }
+        if (w === 402 && h === 874 && dpr === 3) return 'iPhone 16 Pro';
+        if (w === 440 && h === 956 && dpr === 3) return 'iPhone 16 Pro Max';
+        return 'iPhone';
+    }
+
     // ===== DOM =====
     var dDevice = document.getElementById('dDevice');
     var dOS     = document.getElementById('dOS');
@@ -564,13 +584,13 @@
         return;
     }
 
-    // --- 设备名 ---
-    var idM = ua.match(/(iPhone\d+,\d+)/);
-    dDevice.textContent = idM ? (dMap[idM[1]] || idM[1]) : 'iOS 设备';
+    // --- 设备名（屏幕分辨率检测） ---
+    var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
+    var iosMajor = vM ? (parseInt(vM[1].split('_')[0]) || 0) : 0;
+    dDevice.textContent = detectDevice(iosMajor);
     dDevice.className = 'detect-val';
 
     // --- 系统版本 ---
-    var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
     var iosVer = null;
     if (vM) {
         iosVer = vM[1].replace(/_/g, '.');
