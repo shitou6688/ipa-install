@@ -8,47 +8,28 @@
     <title>巨魔安装器 - 在线安装</title>
     <style>
         :root {
-            --blue: #007AFF;
+            --blue: #0071e3;
             --green: #34C759;
             --red: #FF3B30;
             --orange: #FF9500;
-            --bg1: #14112a;
-            --bg2: #1a1835;
-            --card: rgba(255,255,255,0.06);
-            --card-border: rgba(255,255,255,0.08);
-            --text: #fff;
-            --text2: rgba(255,255,255,0.55);
-            --text3: rgba(255,255,255,0.3);
+            --bg1: #f5f5f7;
+            --bg2: #ffffff;
+            --card: #ffffff;
+            --card-border: rgba(0,0,0,0.06);
+            --text: #1d1d1f;
+            --text2: #86868b;
+            --text3: #aeaeb2;
         }
         *{margin:0;padding:0;box-sizing:border-box}
         body{
             font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;
             background:var(--bg1);color:var(--text);
-            background-image: linear-gradient(160deg, #14112a 0%, #1a1445 25%, #241850 45%, #1a2050 65%, #142a45 85%, #14112a 100%);
-            background-attachment: fixed;
             min-height:100vh;overflow-x:hidden;
             -webkit-font-smoothing:antialiased;
         }
 
-        /* 背景光效 */
-        .bg-glow{
-            position:fixed;top:0;left:0;width:100%;height:100%;
-            pointer-events:none;z-index:0;overflow:hidden;
-        }
-        .bg-glow::before,.bg-glow::after{
-            content:'';position:absolute;border-radius:50%;
-            filter:blur(80px);opacity:0.25;
-        }
-        .bg-glow::before{
-            width:350px;height:350px;
-            background:radial-gradient(circle,rgba(100,80,255,0.2),transparent 70%);
-            top:-80px;left:-80px;
-        }
-        .bg-glow::after{
-            width:300px;height:300px;
-            background:radial-gradient(circle,rgba(50,180,200,0.18),transparent 70%);
-            bottom:10%;right:-30px;
-        }
+        /* 背景光效 - 浅色模式已禁用 */
+        .bg-glow{display:none;}
 
         .page{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:24px 20px 40px;}
 
@@ -56,7 +37,7 @@
         .app-header{text-align:center;padding:30px 0 24px;}
         .app-icon{
             width:88px;height:88px;border-radius:22px;margin:0 auto 16px;
-            box-shadow:0 10px 40px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.08);
+            box-shadow:0 8px 30px rgba(0,0,0,0.12);
             display:block;
         }
         .app-title{font-size:22px;font-weight:700;letter-spacing:0.3px;}
@@ -66,7 +47,7 @@
         .detect{
             background:var(--card);border:1px solid var(--card-border);
             border-radius:20px;padding:20px 22px;margin-bottom:20px;
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            box-shadow:0 2px 12px rgba(0,0,0,0.04);
         }
         .detect-head{
             display:flex;align-items:center;gap:8px;
@@ -82,7 +63,7 @@
             display:flex;align-items:center;justify-content:space-between;
             padding:10px 0;
         }
-        .detect-row+.detect-row{border-top:1px solid rgba(255,255,255,0.04);}
+        .detect-row+.detect-row{border-top:1px solid rgba(0,0,0,0.04);}
         .detect-label{font-size:14px;color:var(--text2);}
         .detect-val{font-size:14px;font-weight:500;}
         .detect-val.loading{color:var(--text3);}
@@ -90,7 +71,7 @@
         .detect-val.err{color:var(--red);}
         .detect-val.warn{color:var(--orange);}
         .detect-val.loading::after{content:'';display:inline-block;width:12px;height:12px;
-            border:2px solid rgba(255,255,255,0.1);border-top-color:var(--blue);
+            border:2px solid rgba(0,0,0,0.08);border-top-color:var(--blue);
             border-radius:50%;animation:spin 0.8s linear infinite;margin-left:8px;vertical-align:middle;}
         @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -98,7 +79,7 @@
         .action{
             background:var(--card);border:1px solid var(--card-border);
             border-radius:24px;padding:28px 24px;margin-bottom:16px;
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            box-shadow:0 2px 12px rgba(0,0,0,0.04);
             text-align:center;
         }
         .action-label{
@@ -115,20 +96,20 @@
 
         .install-btn{
             display:flex;align-items:center;justify-content:center;gap:8px;
-            width:100%;padding:16px;border:none;border-radius:16px;
-            font-size:17px;font-weight:700;color:#fff;cursor:pointer;
+            width:100%;padding:16px;border:none;border-radius:14px;
+            font-size:17px;font-weight:600;color:#fff;cursor:pointer;
             text-decoration:none;letter-spacing:0.3px;
-            background:linear-gradient(135deg,var(--blue) 0%,#5856D6 100%);
-            box-shadow:0 6px 24px rgba(0,122,255,0.3);
+            background:var(--blue);
+            box-shadow:0 4px 16px rgba(0,113,227,0.25);
             transition:all 0.3s ease;
         }
-        .install-btn:active{transform:scale(0.97);box-shadow:0 3px 12px rgba(0,122,255,0.2);}
+        .install-btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,113,227,0.2);opacity:0.85;}
         .install-btn .arrow{
             font-size:20px;transition:transform 0.3s ease;
         }
         .install-btn:active .arrow{transform:translateX(3px);}
         .install-btn.disabled{
-            background:rgba(255,255,255,0.06);
+            background:rgba(0,0,0,0.04);
             box-shadow:none;color:var(--text3);
             pointer-events:none;cursor:default;
         }
@@ -139,7 +120,7 @@
         .alt{
             background:var(--card);border:1px solid var(--card-border);
             border-radius:16px;padding:16px 20px;margin-bottom:20px;
-            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            box-shadow:0 2px 12px rgba(0,0,0,0.04);
         }
         .alt-head{
             display:flex;align-items:center;justify-content:space-between;
@@ -154,19 +135,19 @@
         .alt.open .alt-arrow{transform:rotate(180deg);}
         .alt-body{
             display:none;padding-top:14px;margin-top:14px;
-            border-top:1px solid rgba(255,255,255,0.04);
+            border-top:1px solid rgba(0,0,0,0.04);
         }
         .alt.open .alt-body{display:block;}
         .alt-body .alt-name{font-size:15px;font-weight:600;margin-bottom:4px;}
         .alt-body .alt-range{font-size:12px;color:var(--text2);margin-bottom:14px;}
         .alt-btn{
             display:flex;align-items:center;justify-content:center;gap:6px;
-            width:100%;padding:12px;border:1px solid rgba(255,255,255,0.12);
+            width:100%;padding:12px;border:1px solid rgba(0,0,0,0.12);
             border-radius:12px;background:transparent;color:var(--text);
             font-size:14px;font-weight:600;cursor:pointer;
             text-decoration:none;transition:all 0.3s ease;
         }
-        .alt-btn:active{background:rgba(255,255,255,0.05);transform:scale(0.98);}
+        .alt-btn:active{background:rgba(0,0,0,0.04);transform:scale(0.98);}
 
         /* ===== 不支持的提示 ===== */
         .unsupported{
@@ -207,15 +188,15 @@
         .step{
             display:flex;gap:14px;padding:11px 0;
         }
-        .step+.step{border-top:1px solid rgba(255,255,255,0.03);}
+        .step+.step{border-top:1px solid rgba(0,0,0,0.04);}
         .step-num{
             width:26px;height:26px;min-width:26px;border-radius:50%;
-            background:rgba(255,255,255,0.06);color:var(--text2);
+            background:rgba(0,0,0,0.04);color:var(--text2);
             font-size:12px;font-weight:700;
             display:flex;align-items:center;justify-content:center;
-            border:1px solid rgba(255,255,255,0.08);
+            border:1px solid rgba(0,0,0,0.08);
         }
-        .step-text{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.6;padding-top:2px;}
+        .step-text{font-size:14px;color:var(--text2);line-height:1.6;padding-top:2px;}
         .step-text b{color:var(--text);font-weight:600;}
 
         /* ===== 温馨提示 ===== */
@@ -225,7 +206,7 @@
             display:flex;gap:10px;
         }
         .tips-icon{flex-shrink:0;color:var(--orange);font-size:14px;line-height:1.6;}
-        .tips-text{font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;}
+        .tips-text{font-size:12px;color:var(--text2);line-height:1.7;}
 
         /* ===== 兼容性表格 ===== */
         .compat{
@@ -245,7 +226,7 @@
             display:flex;align-items:center;justify-content:space-between;
             padding:12px 0;
         }
-        .compat-row+.compat-row{border-top:1px solid rgba(255,255,255,0.04);}
+        .compat-row+.compat-row{border-top:1px solid rgba(0,0,0,0.04);}
         .compat-ver{font-size:14px;font-weight:600;}
         .compat-range{font-size:13px;color:var(--text2);}
         .compat-tag{
@@ -261,9 +242,10 @@
             text-align:center;padding:16px 0 8px;
         }
         .qrcode-wrap{
-            display:inline-block;background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.08);border-radius:16px;
+            display:inline-block;background:var(--card);
+            border:1px solid var(--card-border);border-radius:16px;
             padding:16px;margin-bottom:10px;
+            box-shadow:0 2px 12px rgba(0,0,0,0.04);
         }
         .qrcode-wrap img{
             width:120px;height:120px;display:block;border-radius:4px;
@@ -289,39 +271,39 @@
         }
         .modal-mask.show{display:flex;}
         .modal{
-            background:rgba(30,30,48,0.97);border:1px solid rgba(255,255,255,0.1);
+            background:#fff;border:1px solid rgba(0,0,0,0.08);
             border-radius:24px;padding:30px 26px;max-width:310px;width:88%;
             text-align:center;animation:fadeUp 0.3s ease-out;
-            box-shadow:0 24px 64px rgba(0,0,0,0.5);
+            box-shadow:0 20px 60px rgba(0,0,0,0.15);
         }
         .modal-title{font-size:18px;font-weight:700;margin-bottom:18px;}
         .modal-steps{text-align:left;margin-bottom:20px;}
         .modal-step{
             display:flex;align-items:center;gap:10px;
-            padding:7px 0;color:rgba(255,255,255,0.65);font-size:13px;
+            padding:7px 0;color:var(--text2);font-size:13px;
         }
         .modal-step span:first-child{
             width:22px;height:22px;min-width:22px;border-radius:50%;
-            background:linear-gradient(135deg,var(--blue),#5856D6);
+            background:var(--blue);
             color:#fff;font-size:11px;font-weight:700;
             display:flex;align-items:center;justify-content:center;
         }
         .modal-progress{margin:16px 0;}
         .modal-bar{
-            width:100%;height:4px;background:rgba(255,255,255,0.08);
+            width:100%;height:4px;background:rgba(0,0,0,0.06);
             border-radius:10px;overflow:hidden;margin-top:8px;
         }
         .modal-fill{
             width:0%;height:100%;border-radius:10px;
-            background:linear-gradient(90deg,var(--blue),#5856D6);
+            background:var(--blue);
             transition:width 0.3s ease;
         }
         .modal-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);}
         .modal-pct{color:var(--blue);font-weight:700;font-size:13px;}
         .modal-close{
             display:none;width:100%;padding:13px;border:none;border-radius:14px;
-            background:linear-gradient(135deg,var(--blue),#5856D6);
-            color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+            background:var(--blue);
+            color:#fff;font-size:15px;font-weight:600;cursor:pointer;
         }
         .modal-close:active{transform:scale(0.97);}
     </style>
@@ -421,7 +403,7 @@
     <!-- 扫码下载 -->
     <div class="qrcode-section anim anim-d6">
         <div class="qrcode-wrap">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https%3A%2F%2Fipa.jumo8.top%2F&bgcolor=161b2e&color=ffffff" alt="扫码下载">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https%3A%2F%2Fipa.jumo8.top%2F&bgcolor=f5f5f7&color=1d1d1f" alt="扫码下载">
         </div>
         <div class="qrcode-hint">打开自带相机，对着二维码<br>会自动弹窗网址，点进去下载</div>
     </div>
@@ -441,7 +423,7 @@
 
     // ===== 渲染函数（全部在 IIFE 内部） =====
     function renderMain(name, range, href, type) {
-        var extra = type === 'primary' ? '' : 'style="background:linear-gradient(135deg,#5856D6,#AF52DE);box-shadow:0 6px 24px rgba(88,86,214,0.3)"';
+        var extra = type === 'primary' ? '' : 'style="background:#5856D6;box-shadow:0 4px 16px rgba(88,86,214,0.25)"';
         return '<div class="action anim anim-d2">' +
             '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>' +
             '<div class="action-name">' + name + '</div>' +
