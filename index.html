@@ -692,7 +692,8 @@
     // --- 设备名（屏幕分辨率检测） ---
     var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
     var iosMajor = vM ? (parseInt(vM[1].split('_')[0]) || 0) : 0;
-    dDevice.textContent = detectDevice(iosMajor);
+    var deviceName = detectDevice(iosMajor);
+    dDevice.textContent = deviceName;
     dDevice.className = 'detect-val';
 
     // --- 系统版本 ---
@@ -701,16 +702,75 @@
         iosVer = vM[1].replace(/_/g, '.');
         dOS.textContent = 'iOS ' + iosVer;
         dOS.className = 'detect-val';
-    } else {
-        dOS.textContent = '未知';
-        dOS.className = 'detect-val warn';
     }
 
-    // --- 无法检测版本 ---
+    // --- 无法检测版本：提供手动选择 ---
     if (!iosVer) {
-        dStatus.textContent = '无法判断';
+        dOS.innerHTML = '请手动选择 <select id="iosVerSelect" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:4px 8px;font-size:13px;font-family:inherit;margin-left:4px;">' +
+            '<option value="">选择版本</option>' +
+            '<option value="14.0">iOS 14.0</option><option value="14.1">iOS 14.1</option><option value="14.2">iOS 14.2</option><option value="14.3">iOS 14.3</option><option value="14.4">iOS 14.4</option><option value="14.5">iOS 14.5</option><option value="14.6">iOS 14.6</option><option value="14.7">iOS 14.7</option><option value="14.8">iOS 14.8</option>' +
+            '<option value="15.0">iOS 15.0</option><option value="15.1.1">iOS 15.1.1</option>' +
+            '<option value="15.2">iOS 15.2</option><option value="15.3">iOS 15.3</option><option value="15.4">iOS 15.4</option><option value="15.5">iOS 15.5</option><option value="15.6.1">iOS 15.6.1</option>' +
+            '<option value="16.0">iOS 16.0</option><option value="16.1">iOS 16.1</option><option value="16.2">iOS 16.2</option><option value="16.3.1">iOS 16.3.1</option><option value="16.4">iOS 16.4</option><option value="16.5">iOS 16.5</option><option value="16.6.1">iOS 16.6.1</option>' +
+            '<option value="17.0">iOS 17.0</option><option value="17.1">iOS 17.1</option><option value="17.2">iOS 17.2</option><option value="17.3">iOS 17.3</option><option value="17.4">iOS 17.4</option><option value="17.5">iOS 17.5</option><option value="17.6.1">iOS 17.6.1</option><option value="17.7">iOS 17.7</option>' +
+            '<option value="18.0">iOS 18.0</option><option value="18.1">iOS 18.1</option><option value="18.2">iOS 18.2</option><option value="18.3">iOS 18.3</option><option value="18.4">iOS 18.4</option><option value="18.5">iOS 18.5</option>' +
+            '<option value="19.0">iOS 19.0</option>' +
+            '</select>';
+        dOS.className = 'detect-val warn';
+        dStatus.textContent = '请选择版本';
         dStatus.className = 'detect-val warn';
-        main.innerHTML = renderUnknown();
+        main.innerHTML = '<div style="text-align:center;padding:10px 0 6px;color:rgba(255,255,255,0.4);font-size:13px;">📋 无法自动检测系统版本<br>请选择你的系统版本，自动推荐安装包</div>' + renderUnknown();
+
+        // 监听手动选择
+        setTimeout(function() {
+            var sel = document.getElementById('iosVerSelect');
+            if (!sel) return;
+            sel.addEventListener('change', function() {
+                var val = this.value;
+                if (!val) {
+                    dStatus.textContent = '请选择版本';
+                    dStatus.className = 'detect-val warn';
+                    main.innerHTML = '<div style="text-align:center;padding:10px 0 6px;color:rgba(255,255,255,0.4);font-size:13px;">📋 请选择你的系统版本</div>' + renderUnknown();
+                    initInteractions();
+                    return;
+                }
+                var v = vNum(val);
+                var ok14  = (v >= 14    && v <= 15.1101);
+                var okUni = (v >= 15.02 && v <= 16.6101);
+                if (ok14 && !okUni) {
+                    dOS.innerHTML = 'iOS ' + val;
+                    dStatus.textContent = '✓ 专用版';
+                    dStatus.className = 'detect-val ok';
+                    main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, true);
+                } else if (okUni && !ok14) {
+                    dOS.innerHTML = 'iOS ' + val;
+                    dStatus.textContent = '✓ 通用版';
+                    dStatus.className = 'detect-val ok';
+                    main.innerHTML = renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary') + renderAlt('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, true);
+                } else if (ok14 && okUni) {
+                    dOS.innerHTML = 'iOS ' + val;
+                    dStatus.textContent = '✓ 推荐 专用版';
+                    dStatus.className = 'detect-val ok';
+                    main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, false);
+                } else {
+                    dOS.innerHTML = 'iOS ' + val;
+                    dStatus.textContent = '✗ 暂不支持';
+                    dStatus.className = 'detect-val err';
+                    var tooLow = v < 14;
+                    main.innerHTML = renderUnsupported(val, tooLow);
+                }
+                initInteractions();
+                // 视频教程
+                if (ok14 || okUni) {
+                    var vs = document.getElementById('videoSection');
+                    var vw = document.getElementById('videoWrap');
+                    if (vs && vw && vs.style.display === 'none') {
+                        vw.innerHTML = '<video controls preload="metadata" playsinline><source src="tutorial.mp4" type="video/mp4"></video>';
+                        vs.style.display = '';
+                    }
+                }
+            });
+        }, 100);
         initInteractions();
         return;
     }
