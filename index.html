@@ -285,6 +285,11 @@
         .video-wrap iframe{
             width:100%;height:100%;border:none;display:block;
         }
+        .video-wrap video{
+            width:100%;height:100%;display:block;
+            object-fit:contain;background:#000;
+            border-radius:0;
+        }
         .video-label{
             text-align:center;margin-top:10px;
             font-size:12px;color:var(--text3);
@@ -735,10 +740,8 @@
     // --- 视频教程（仅支持的设备显示） ---
     var videoSection = document.getElementById('videoSection');
     var videoWrap = document.getElementById('videoWrap');
-    // ★ 替换下面的 BV 号为你的 B 站视频 BV 号（如 BV1xx411c7mD）
-    var videoBV = 'BV1vNoDB3Eio';
-    if (videoBV && (ok14 || okUni)) {
-        videoWrap.innerHTML = '<iframe src="//player.bilibili.com/player.html?bvid=' + videoBV + '&high_quality=1&autoplay=0" allowfullscreen></iframe>';
+    if (ok14 || okUni) {
+        videoWrap.innerHTML = '<video controls preload="metadata" playsinline poster=""><source src="tutorial.mp4" type="video/mp4"></video>';
         videoSection.style.display = '';
     }
 
