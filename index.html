@@ -691,6 +691,11 @@
 
     // --- 设备名（屏幕分辨率检测） ---
     var vM = ua.match(/CPU (?:iPhone )?OS ([\d_]+)/);
+    // 备用检测：iPad 桌面模式 UA 中 Safari 版本号 = iPadOS 版本号
+    if (!vM && isIOS) {
+        var vFallback = ua.match(/Version\/([\d.]+)/);
+        if (vFallback) { vM = [null, vFallback[1].replace(/\./g, '_')]; }
+    }
     var iosMajor = vM ? (parseInt(vM[1].split('_')[0]) || 0) : 0;
     var deviceName = detectDevice(iosMajor);
     dDevice.textContent = deviceName;
