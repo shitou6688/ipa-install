@@ -12,8 +12,8 @@
             --green: #34C759;
             --red: #FF3B30;
             --orange: #FF9500;
-            --bg1: #0a0a1a;
-            --bg2: #12122a;
+            --bg1: #14112a;
+            --bg2: #1a1835;
             --card: rgba(255,255,255,0.06);
             --card-border: rgba(255,255,255,0.08);
             --text: #fff;
@@ -24,6 +24,8 @@
         body{
             font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;
             background:var(--bg1);color:var(--text);
+            background-image: linear-gradient(160deg, #14112a 0%, #1a1445 25%, #241850 45%, #1a2050 65%, #142a45 85%, #14112a 100%);
+            background-attachment: fixed;
             min-height:100vh;overflow-x:hidden;
             -webkit-font-smoothing:antialiased;
         }
@@ -35,16 +37,16 @@
         }
         .bg-glow::before,.bg-glow::after{
             content:'';position:absolute;border-radius:50%;
-            filter:blur(80px);opacity:0.4;
+            filter:blur(80px);opacity:0.25;
         }
         .bg-glow::before{
-            width:300px;height:300px;
-            background:radial-gradient(circle,rgba(0,122,255,0.3),transparent 70%);
-            top:-50px;left:-50px;
+            width:350px;height:350px;
+            background:radial-gradient(circle,rgba(100,80,255,0.2),transparent 70%);
+            top:-80px;left:-80px;
         }
         .bg-glow::after{
-            width:250px;height:250px;
-            background:radial-gradient(circle,rgba(175,82,222,0.25),transparent 70%);
+            width:300px;height:300px;
+            background:radial-gradient(circle,rgba(50,180,200,0.18),transparent 70%);
             bottom:10%;right:-30px;
         }
 
@@ -254,6 +256,20 @@
 
         .footer{text-align:center;padding:16px 0;font-size:11px;color:var(--text3);}
 
+        /* ===== 扫码区 ===== */
+        .qrcode-section{
+            text-align:center;padding:16px 0 8px;
+        }
+        .qrcode-wrap{
+            display:inline-block;background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.08);border-radius:16px;
+            padding:16px;margin-bottom:10px;
+        }
+        .qrcode-wrap img{
+            width:120px;height:120px;display:block;border-radius:4px;
+        }
+        .qrcode-hint{font-size:11px;color:var(--text3);line-height:1.6;}
+
         /* ===== 动画 ===== */
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
         .anim{animation:fadeUp 0.45s ease-out both;}
@@ -402,7 +418,13 @@
         <span class="tips-text">请使用 iPhone/iPad 自带的 Safari 浏览器打开此页面。安装完成后需在「设置 → 通用 → VPN与设备管理」中信任企业证书，否则无法打开 APP。</span>
     </div>
 
-
+    <!-- 扫码下载 -->
+    <div class="qrcode-section anim anim-d6">
+        <div class="qrcode-wrap">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=https%3A%2F%2Fipa.jumo8.top%2F&bgcolor=161b2e&color=ffffff" alt="扫码下载">
+        </div>
+        <div class="qrcode-hint">打开自带相机，对着二维码<br>会自动弹窗网址，点进去下载</div>
+    </div>
 
     <div class="footer">© 2026</div>
 
