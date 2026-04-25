@@ -565,7 +565,8 @@
     // ===== 屏幕分辨率识别设备型号 =====
     // 策略：分辨率确定候选列表 → iOS版本下限排除旧机型 → 显示剩余可能机型
     // 注意：同分辨率机型无法100%区分，显示最窄范围
-    function detectDevice(iosMajor) {
+    // isIPad 参数：当为 true 时，兜底返回 iPad 而非 iPhone
+    function detectDevice(iosMajor, isIPad) {
         var w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
         if (w > h) { var t = w; w = h; h = t; }
 
@@ -666,6 +667,27 @@
             return 'iPhone Air';
         }
 
+        // ===== iPad 桌面模式兜底 =====
+        // 桌面模式下 screen.width 报的是模拟桌面分辨率，不是 iPad 真实分辨率
+        // 通过屏幕宽高比 + isIPad 标志来判断
+        if (isIPad) {
+            var ratio = h / w;
+            // iPad 大致宽高比范围（含安全区域）
+            if (ratio >= 1.25 && ratio <= 1.5) {
+                // 约 3:4 或 4:3 比例 → 大屏 iPad（Pro 12.9"/13" / Air 13"）
+                return 'iPad Pro / iPad Air (大屏)';
+            }
+            if (ratio >= 1.4 && ratio <= 1.65) {
+                // 约 2:3 比例 → 11" iPad 系列
+                return 'iPad / iPad Pro / iPad Air (11")';
+            }
+            if (ratio >= 1.5 && ratio <= 1.75) {
+                // 更窄比例 → iPad mini
+                return 'iPad mini';
+            }
+            return 'iPad';
+        }
+
         // 兜底
         return /iPad/.test(navigator.userAgent) ? 'iPad' : 'iPhone';
     }
@@ -697,7 +719,8 @@
         if (vFallback) { vM = [null, vFallback[1].replace(/\./g, '_')]; }
     }
     var iosMajor = vM ? (parseInt(vM[1].split('_')[0]) || 0) : 0;
-    var deviceName = detectDevice(iosMajor);
+    var isIPad = /iPad/.test(ua) || (ua.indexOf('Mac') > -1 && navigator.maxTouchPoints > 1);
+    var deviceName = detectDevice(iosMajor, isIPad);
     dDevice.textContent = deviceName;
     dDevice.className = 'detect-val';
 
