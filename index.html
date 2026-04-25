@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>巨魔安装器 - 在线安装</title>
     <style>
         :root {
             --blue: #0071e3;
+            --cyan: #00b4d8;
             --green: #34C759;
             --red: #FF3B30;
             --orange: #FF9500;
@@ -19,10 +23,12 @@
             --text: #1d1d1f;
             --text2: #86868b;
             --text3: #aeaeb2;
+            --grad: linear-gradient(135deg, #0071e3, #00b4d8);
+            --grad-purple: linear-gradient(135deg, #5856D6, #AF52DE);
         }
         *{margin:0;padding:0;box-sizing:border-box}
         body{
-            font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;
+            font-family:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Helvetica Neue',sans-serif;
             background:var(--bg1);color:var(--text);
             min-height:100vh;overflow-x:hidden;
             -webkit-font-smoothing:antialiased;
@@ -34,13 +40,19 @@
         .page{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:24px 20px 40px;}
 
         /* ===== 顶部 APP 信息 ===== */
-        .app-header{text-align:center;padding:30px 0 24px;}
+        .app-header{text-align:center;padding:30px 0 24px;position:relative;}
+        .app-header::before{
+            content:'';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+            width:200px;height:200px;border-radius:50%;
+            background:radial-gradient(circle,rgba(0,113,227,0.1) 0%,rgba(0,180,216,0.06) 40%,transparent 70%);
+            pointer-events:none;
+        }
         .app-icon{
             width:88px;height:88px;border-radius:22px;margin:0 auto 16px;
-            box-shadow:0 8px 30px rgba(0,0,0,0.12);
-            display:block;
+            box-shadow:0 8px 30px rgba(0,0,0,0.1),0 0 0 0.5px rgba(0,0,0,0.04);
+            display:block;position:relative;
         }
-        .app-title{font-size:22px;font-weight:700;letter-spacing:0.3px;}
+        .app-title{font-size:22px;font-weight:700;letter-spacing:-0.02px;}
         .app-subtitle{font-size:13px;color:var(--text2);margin-top:6px;}
 
         /* ===== 检测卡片 ===== */
@@ -48,7 +60,9 @@
             background:var(--card);border:1px solid var(--card-border);
             border-radius:20px;padding:20px 22px;margin-bottom:20px;
             box-shadow:0 2px 12px rgba(0,0,0,0.04);
+            transition:transform 0.25s ease,box-shadow 0.25s ease;
         }
+        .detect:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.08);}
         .detect-head{
             display:flex;align-items:center;gap:8px;
             font-size:13px;font-weight:600;color:var(--text2);
@@ -81,7 +95,9 @@
             border-radius:24px;padding:28px 24px;margin-bottom:16px;
             box-shadow:0 2px 12px rgba(0,0,0,0.04);
             text-align:center;
+            transition:transform 0.25s ease,box-shadow 0.25s ease;
         }
+        .action:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,0,0,0.07);}
         .action-label{
             display:inline-flex;align-items:center;gap:5px;
             padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;
@@ -99,11 +115,12 @@
             width:100%;padding:16px;border:none;border-radius:14px;
             font-size:17px;font-weight:600;color:#fff;cursor:pointer;
             text-decoration:none;letter-spacing:0.3px;
-            background:var(--blue);
-            box-shadow:0 4px 16px rgba(0,113,227,0.25);
+            background:var(--grad);
+            box-shadow:0 4px 16px rgba(0,113,227,0.2);
             transition:all 0.3s ease;
         }
-        .install-btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,113,227,0.2);opacity:0.85;}
+        .install-btn:hover{box-shadow:0 6px 24px rgba(0,113,227,0.3);filter:brightness(1.05);}
+        .install-btn:active{transform:scale(0.97);box-shadow:0 2px 8px rgba(0,113,227,0.15);opacity:0.9;}
         .install-btn .arrow{
             font-size:20px;transition:transform 0.3s ease;
         }
@@ -121,7 +138,9 @@
             background:var(--card);border:1px solid var(--card-border);
             border-radius:16px;padding:16px 20px;margin-bottom:20px;
             box-shadow:0 2px 12px rgba(0,0,0,0.04);
+            transition:transform 0.25s ease,box-shadow 0.25s ease;
         }
+        .alt:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.07);}
         .alt-head{
             display:flex;align-items:center;justify-content:space-between;
             cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
@@ -183,7 +202,7 @@
         }
         .steps-title::before{
             content:'';width:3px;height:16px;border-radius:2px;
-            background:linear-gradient(180deg,var(--blue),#5856D6);
+            background:var(--grad);
         }
         .step{
             display:flex;gap:14px;padding:11px 0;
@@ -191,12 +210,12 @@
         .step+.step{border-top:1px solid rgba(0,0,0,0.04);}
         .step-num{
             width:26px;height:26px;min-width:26px;border-radius:50%;
-            background:rgba(0,0,0,0.04);color:var(--text2);
+            background:var(--grad);color:#fff;
             font-size:12px;font-weight:700;
             display:flex;align-items:center;justify-content:center;
-            border:1px solid rgba(0,0,0,0.08);
+            box-shadow:0 2px 8px rgba(0,113,227,0.2);
         }
-        .step-text{font-size:14px;color:var(--text2);line-height:1.6;padding-top:2px;}
+        .step-text{font-size:14px;color:#424245;line-height:1.6;padding-top:2px;}
         .step-text b{color:var(--text);font-weight:600;}
 
         /* ===== 温馨提示 ===== */
@@ -284,7 +303,7 @@
         }
         .modal-step span:first-child{
             width:22px;height:22px;min-width:22px;border-radius:50%;
-            background:var(--blue);
+            background:var(--grad);
             color:#fff;font-size:11px;font-weight:700;
             display:flex;align-items:center;justify-content:center;
         }
@@ -295,20 +314,24 @@
         }
         .modal-fill{
             width:0%;height:100%;border-radius:10px;
-            background:var(--blue);
+            background:var(--grad);
             transition:width 0.3s ease;
         }
         .modal-top{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);}
         .modal-pct{color:var(--blue);font-weight:700;font-size:13px;}
         .modal-close{
             display:none;width:100%;padding:13px;border:none;border-radius:14px;
-            background:var(--blue);
+            background:var(--grad);
             color:#fff;font-size:15px;font-weight:600;cursor:pointer;
+            transition:all 0.3s ease;
         }
+        .modal-close:active{transform:scale(0.97);opacity:0.9;}
         .modal-close:active{transform:scale(0.97);}
     </style>
 </head>
 <body>
+
+<div style="position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#0071e3,#00b4d8,#5856D6);z-index:10000;"></div>
 
 <div class="bg-glow"></div>
 
@@ -423,7 +446,7 @@
 
     // ===== 渲染函数（全部在 IIFE 内部） =====
     function renderMain(name, range, href, type) {
-        var extra = type === 'primary' ? '' : 'style="background:#5856D6;box-shadow:0 4px 16px rgba(88,86,214,0.25)"';
+        var extra = type === 'primary' ? '' : 'style="background:linear-gradient(135deg,#5856D6,#7C6FE0);box-shadow:0 4px 16px rgba(88,86,214,0.2)"';
         return '<div class="action anim anim-d2">' +
             '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>' +
             '<div class="action-name">' + name + '</div>' +
