@@ -564,12 +564,45 @@
 
     // ===== 屏幕分辨率识别设备型号 =====
     // 策略：分辨率确定候选列表 → iOS版本下限排除旧机型 → 显示剩余可能机型
-    // 注意：同分辨率机型无法100%区分，显示最窄范围 + "(或同级机型)" 提示
+    // 注意：同分辨率机型无法100%区分，显示最窄范围
     function detectDevice(iosMajor) {
         var w = screen.width, h = screen.height, dpr = window.devicePixelRatio || 1;
         if (w > h) { var t = w; w = h; h = t; }
 
-        // ===== 独立分辨率（可直接确定机型或极小范围） =====
+        // ===== iPad 系列（全部 @2x，分辨率与 iPhone 不重叠） =====
+        // iPad Pro 8th gen 13" : 1032×1376 @2x (ios18+)
+        if (w === 1032 && h === 1376 && dpr === 2) {
+            if (iosMajor >= 19) return 'iPad Pro 13" (M4)';
+            return 'iPad Pro 13"';
+        }
+        // iPad Pro 7th gen 13" : 1032×1376 @2x (ios17+)
+        // iPad Pro 5/6th gen 12.9" : 1024×1366 @2x
+        if (w === 1024 && h === 1366 && dpr === 2) {
+            return 'iPad Pro 12.9" / iPad Air 13"';
+        }
+        // iPad Pro 8th gen 11" : 834×1210 @2x (ios18+)
+        if (w === 834 && h === 1210 && dpr === 2) {
+            if (iosMajor >= 18) return 'iPad Pro 11" (M4)';
+            return 'iPad Pro 11"';
+        }
+        // iPad Pro 5/6th gen 11" : 834×1194 @2x
+        if (w === 834 && h === 1194 && dpr === 2) {
+            return 'iPad Pro 11"';
+        }
+        // iPad 10th gen / 11th gen / iPad Air 4-8 (11") : 820×1180 @2x
+        if (w === 820 && h === 1180 && dpr === 2) {
+            return 'iPad / iPad Air 11"';
+        }
+        // iPad Mini 6/7 : 744×1133 @2x
+        if (w === 744 && h === 1133 && dpr === 2) {
+            return 'iPad mini';
+        }
+        // iPad 9th gen : 810×1080 @2x
+        if (w === 810 && h === 1080 && dpr === 2) {
+            return 'iPad (第9/10代)';
+        }
+
+        // ===== iPhone 独立分辨率 =====
         if (w === 320 && h === 568) return 'iPhone SE';
         if (w === 375 && h === 667 && dpr === 2) return iosMajor >= 15 ? 'iPhone SE (2nd)' : 'iPhone 6s / 7 / 8';
         if (w === 375 && h === 667 && dpr === 3) return 'iPhone SE (3rd)';
@@ -579,7 +612,6 @@
 
         // ===== 375×812 @3x : mini / X / XS / 11 Pro =====
         if (w === 375 && h === 812 && dpr === 3) {
-            // iPhone X(ios11), XS(ios12), 11Pro(ios13), 12mini(ios14), 13mini(ios15)
             if (iosMajor >= 15) return 'iPhone 12 mini / 13 mini';
             if (iosMajor >= 14) return 'iPhone 11 Pro / 12 mini';
             return 'iPhone X / XS / 11 Pro';
@@ -587,17 +619,15 @@
 
         // ===== 390×844 @3x : 12/12Pro/13/13Pro/14/14Plus/17e =====
         if (w === 390 && h === 844 && dpr === 3) {
-            // iPhone 12/12Pro(ios14-17), 13/13Pro(ios15-18), 14(ios16-18), 17e(ios18+)
-            if (iosMajor >= 19) return 'iPhone 14 / 17e';        // 12/13 最高ios18已排除
-            if (iosMajor >= 18) return 'iPhone 13 / 14 / 17e';   // 12/12Pro 最高ios17已排除
-            if (iosMajor >= 16) return 'iPhone 12 / 13 / 14';    // 所有都可能
-            return 'iPhone 12 / 13';                              // ios14-15无14
+            if (iosMajor >= 19) return 'iPhone 14 / 17e';
+            if (iosMajor >= 18) return 'iPhone 13 / 14 / 17e';
+            if (iosMajor >= 16) return 'iPhone 12 / 13 / 14';
+            return 'iPhone 12 / 13';
         }
 
         // ===== 428×926 @3x : 12ProMax/13ProMax/14Plus/15Plus =====
         if (w === 428 && h === 926 && dpr === 3) {
-            // iPhone 12ProMax(ios14-17), 13ProMax(ios15-18), 14Plus(ios16-18), 15Plus(ios17+)
-            if (iosMajor >= 18) return 'iPhone 14 Plus / 15 Plus'; // 12/13PM最高ios17已排除
+            if (iosMajor >= 18) return 'iPhone 14 Plus / 15 Plus';
             if (iosMajor >= 17) return 'iPhone 13 PM / 14+ / 15+';
             if (iosMajor >= 16) return 'iPhone 12 PM / 13 PM / 14+';
             return 'iPhone 12 PM / 13 PM';
@@ -605,16 +635,14 @@
 
         // ===== 393×852 @3x : 14Pro/15/15Pro/16/16e =====
         if (w === 393 && h === 852 && dpr === 3) {
-            // iPhone 14Pro(ios16-18), 15(ios17+), 15Pro(ios17+), 16(ios18+), 16e(ios18+)
-            if (iosMajor >= 19) return 'iPhone 15 / 15 Pro / 16 / 16e'; // 14Pro最高ios18排除
-            if (iosMajor >= 18) return 'iPhone 14 Pro / 15 / 16 / 16e'; // 不能排除14Pro
+            if (iosMajor >= 19) return 'iPhone 15 / 15 Pro / 16 / 16e';
+            if (iosMajor >= 18) return 'iPhone 14 Pro / 15 / 16 / 16e';
             if (iosMajor >= 17) return 'iPhone 14 Pro / 15 / 15 Pro';
-            return 'iPhone 14 Pro'; // ios16只有14Pro
+            return 'iPhone 14 Pro';
         }
 
         // ===== 430×932 @3x : 14ProMax/15ProMax/16Plus/16ProMax =====
         if (w === 430 && h === 932 && dpr === 3) {
-            // iPhone 14ProMax(ios16-18), 15ProMax(ios17+), 16Plus(ios18+), 16ProMax(ios18+)
             if (iosMajor >= 19) return 'iPhone 15 PM / 16+ / 16 PM';
             if (iosMajor >= 18) return 'iPhone 14 PM / 15 PM / 16+ / 16 PM';
             if (iosMajor >= 17) return 'iPhone 14 PM / 15 PM';
@@ -623,14 +651,12 @@
 
         // ===== 402×874 @3x : 16Pro/17/17Pro =====
         if (w === 402 && h === 874 && dpr === 3) {
-            // iPhone 16Pro(ios18), 17(ios19+), 17Pro(ios19+)
-            if (iosMajor >= 19) return 'iPhone 17 / 17 Pro';   // 16Pro最高ios18排除
-            return 'iPhone 16 Pro';                            // ios18只有16Pro
+            if (iosMajor >= 19) return 'iPhone 17 / 17 Pro';
+            return 'iPhone 16 Pro';
         }
 
         // ===== 440×956 @3x : 16ProMax/17ProMax =====
         if (w === 440 && h === 956 && dpr === 3) {
-            // iPhone 16ProMax(ios18), 17ProMax(ios19+)
             if (iosMajor >= 19) return 'iPhone 17 Pro Max';
             return 'iPhone 16 Pro Max';
         }
@@ -640,10 +666,8 @@
             return 'iPhone Air';
         }
 
-        // ===== iPad 系列 =====
-        if (/iPad/.test(navigator.userAgent)) return 'iPad';
-
-        return 'iPhone';
+        // 兜底
+        return /iPad/.test(navigator.userAgent) ? 'iPad' : 'iPhone';
     }
 
     // ===== DOM =====
