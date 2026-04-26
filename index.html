@@ -453,36 +453,19 @@
 
     // ===== 配置 =====
     var base = location.origin + location.pathname.replace(/index\.html$/,'');
-    var plist14 = base + 'manifest-14.plist';
     var plistUni = base + 'manifest-universal.plist';
-    var link14 = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plist14);
     var linkUni = 'itms-services://?action=download-manifest&url=' + encodeURIComponent(plistUni);
 
     // ===== 渲染函数（全部在 IIFE 内部） =====
-    function renderMain(name, range, href, type) {
-        var extra = type === 'primary' ? '' : 'style="background:linear-gradient(135deg,#5856D6,#AF52DE);box-shadow:0 6px 24px rgba(88,86,214,0.3)"';
+    function renderMain(href) {
         return '<div class="action anim anim-d2">' +
             '<div class="action-label"><svg class="check" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 为您推荐</div>' +
-            '<div class="action-name">' + name + '</div>' +
-            '<div class="action-range">适用 <b>' + range + '</b></div>' +
-            '<a class="install-btn" href="' + href + '" ' + extra + '>' +
+            '<div class="action-name">巨魔安装器</div>' +
+            '<div class="action-range">适用 <b>iOS 14.0 — 16.6.1</b></div>' +
+            '<a class="install-btn" href="' + href + '">' +
                 '<svg class="dl-icon" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>' +
                 '安 装<span class="arrow">→</span>' +
             '</a></div>';
-    }
-
-    function renderAlt(name, range, href, disabled) {
-        var dis = disabled ? ' style="opacity:0.35;pointer-events:none"' : '';
-        return '<div class="alt anim anim-d3" id="altCard">' +
-            '<div class="alt-head" id="altHead">' +
-                '<span class="alt-title">其他版本：' + name + '</span>' +
-                '<span class="alt-arrow">▼</span>' +
-            '</div>' +
-            '<div class="alt-body">' +
-                '<div class="alt-name">' + name + '</div>' +
-                '<div class="alt-range">适用 ' + range + '</div>' +
-                '<a class="alt-btn" href="' + href + '"' + dis + '>下载此版本</a>' +
-            '</div></div>';
     }
 
     function renderNonIOS() {
@@ -503,8 +486,7 @@
     }
 
     function renderUnknown() {
-        return renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') +
-               renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary');
+        return renderMain(linkUni);
     }
 
     // ===== 版本号映射 =====
@@ -763,23 +745,11 @@
                     return;
                 }
                 var v = vNum(val);
-                var ok14  = (v >= 14    && v <= 15.1101);
-                var okUni = (v >= 15.02 && v <= 16.6101);
-                if (ok14 && !okUni) {
+                if (v >= 14 && v <= 16.6101) {
                     dOS.innerHTML = 'iOS ' + val;
-                    dStatus.textContent = '✓ 专用版';
+                    dStatus.textContent = '✓ 支持安装';
                     dStatus.className = 'detect-val ok';
-                    main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, true);
-                } else if (okUni && !ok14) {
-                    dOS.innerHTML = 'iOS ' + val;
-                    dStatus.textContent = '✓ 通用版';
-                    dStatus.className = 'detect-val ok';
-                    main.innerHTML = renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary') + renderAlt('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, true);
-                } else if (ok14 && okUni) {
-                    dOS.innerHTML = 'iOS ' + val;
-                    dStatus.textContent = '✓ 推荐 专用版';
-                    dStatus.className = 'detect-val ok';
-                    main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary') + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, false);
+                    main.innerHTML = renderMain(linkUni);
                 } else {
                     dOS.innerHTML = 'iOS ' + val;
                     dStatus.textContent = '✗ 暂不支持';
@@ -789,7 +759,7 @@
                 }
                 initInteractions();
                 // 视频教程
-                if (ok14 || okUni) {
+                if (v >= 14 && v <= 16.6101) {
                     var vs = document.getElementById('videoSection');
                     var vw = document.getElementById('videoWrap');
                     if (vs && vw && vs.style.display === 'none') {
@@ -805,29 +775,13 @@
 
     // --- 版本兼容性判断 ---
     var v = vNum(iosVer);
-    var ok14  = (v >= 14    && v <= 15.1101);  // 14.0 ~ 15.1.1
-    var okUni = (v >= 15.02 && v <= 16.6101);  // 15.2 ~ 16.6.1
+    var ok = (v >= 14 && v <= 16.6101);  // 14.0 ~ 16.6.1
 
-    if (ok14 && !okUni) {
-        // 只支持专用版
-        dStatus.textContent = '✓ 专用版';
+    if (ok) {
+        dStatus.textContent = '✓ 支持安装';
         dStatus.className = 'detect-val ok';
-        main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary')
-            + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, true);
-    } else if (okUni && !ok14) {
-        // 只支持通用版
-        dStatus.textContent = '✓ 通用版';
-        dStatus.className = 'detect-val ok';
-        main.innerHTML = renderMain('通用版', 'iOS 15.2 — 16.6.1', linkUni, 'secondary')
-            + renderAlt('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, true);
-    } else if (ok14 && okUni) {
-        // 两个都支持（理论上不会出现，但兜底）
-        dStatus.textContent = '✓ 推荐 专用版';
-        dStatus.className = 'detect-val ok';
-        main.innerHTML = renderMain('14.0 - 15.1.1 专用版', 'iOS 14.0 — 15.1.1', link14, 'primary')
-            + renderAlt('通用版', 'iOS 15.2 — 16.6.1', linkUni, false);
+        main.innerHTML = renderMain(linkUni);
     } else {
-        // 都不支持
         dStatus.textContent = '✗ 暂不支持';
         dStatus.className = 'detect-val err';
         main.innerHTML = renderUnsupported(iosVer, v < 14);
@@ -836,7 +790,7 @@
     // --- 视频教程（仅支持的设备显示） ---
     var videoSection = document.getElementById('videoSection');
     var videoWrap = document.getElementById('videoWrap');
-    if (ok14 || okUni) {
+    if (ok) {
         videoWrap.innerHTML = '<video controls preload="metadata" playsinline><source src="tutorial.mp4" type="video/mp4"></video>';
         videoSection.style.display = '';
     }
@@ -845,13 +799,6 @@
 
     // ===== 交互绑定 =====
     function initInteractions() {
-        // 折叠
-        var altHead = document.getElementById('altHead');
-        var altCard = document.getElementById('altCard');
-        if (altHead && altCard) {
-            altHead.onclick = function() { altCard.classList.toggle('open'); };
-        }
-
         // 安装弹窗
         var modal = document.getElementById('modal');
         var close = document.getElementById('modalClose');
