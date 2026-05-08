@@ -1,5 +1,5 @@
 // ============================================================
-// ipa.jumo8.top — Worker + 管理后台
+// ipa.jumo8.top — Pages Function（middleware 模式）
 // /           → index.html（不动）
 // /admin      → 管理后台 SPA（内置 HTML）
 // /api/*      → 管理接口（KV 存储）
@@ -60,14 +60,11 @@ td .actions{display:flex;gap:6px}
 <body>
 <header>
   <h1>IPA 管理后台</h1>
-  <a class="back" href="/">← 返回首页</a>
+  <a class="back" href="/">\u2190 返回首页</a>
 </header>
 <div class="container">
-  <!-- 添加/编辑应用 -->
   <div class="card">
-    <div class="section-title">
-      <h2 id="formTitle">添加应用</h2>
-    </div>
+    <div class="section-title"><h2 id="formTitle">添加应用</h2></div>
     <div class="form-group">
       <label>应用 Key（URL 标识，如 universal）</label>
       <input type="text" id="appKey" placeholder="universal" />
@@ -92,19 +89,15 @@ td .actions{display:flex;gap:6px}
     </div>
     <div class="form-group">
       <label>适用范围（可选）</label>
-      <input type="text" id="appScope" placeholder="iOS 14.0 — 16.6.1" />
+      <input type="text" id="appScope" placeholder="iOS 14.0 \u2014 16.6.1" />
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btnSave">保存</button>
       <button class="btn btn-secondary" id="btnCancel" style="display:none">取消编辑</button>
     </div>
   </div>
-
-  <!-- 应用列表 -->
   <div class="card">
-    <div class="section-title">
-      <h2>应用列表</h2>
-    </div>
+    <div class="section-title"><h2>应用列表</h2></div>
     <div id="appList"></div>
   </div>
 </div>
@@ -113,16 +106,13 @@ td .actions{display:flex;gap:6px}
 (function(){
   var API = '/api/apps';
   var editingId = null;
-
   function toast(msg, ok) {
     var el = document.getElementById('toast');
     el.textContent = msg;
     el.className = 'toast ' + (ok ? 'toast-ok' : 'toast-err') + ' show';
     setTimeout(function(){ el.className = 'toast'; }, 2500);
   }
-
   function $(id){ return document.getElementById(id); }
-
   async function loadApps() {
     try {
       var res = await fetch(API);
@@ -132,7 +122,6 @@ td .actions{display:flex;gap:6px}
       $('appList').innerHTML = '<div class="empty">加载失败: ' + e.message + '</div>';
     }
   }
-
   function renderList(apps) {
     if (!apps || apps.length === 0) {
       $('appList').innerHTML = '<div class="empty">暂无应用，请在上方添加</div>';
@@ -156,9 +145,7 @@ td .actions{display:flex;gap:6px}
     html += '</tbody></table>';
     $('appList').innerHTML = html;
   }
-
   function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-
   async function saveApp() {
     var key = $('appKey').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
     var name = $('appName').value.trim();
@@ -166,15 +153,9 @@ td .actions{display:flex;gap:6px}
     var version = $('appVersion').value.trim();
     var ipaUrl = $('appIpaUrl').value.trim();
     var scope = $('appScope').value.trim();
-
-    if (!key || !name || !ipaUrl) {
-      toast('Key、名称、IPA链接不能为空', false);
-      return;
-    }
-
+    if (!key || !name || !ipaUrl) { toast('Key、名称、IPA链接不能为空', false); return; }
     var body = { key:key, name:name, bundleId:bundleId, version:version, ipaUrl:ipaUrl, scope:scope };
     var method = editingId ? 'PUT' : 'POST';
-
     try {
       var res = await fetch(API, { method:method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
       var data = await res.json();
@@ -182,45 +163,32 @@ td .actions{display:flex;gap:6px}
       toast(editingId ? '已更新' : '已添加', true);
       resetForm();
       loadApps();
-    } catch(e) {
-      toast('保存失败: ' + e.message, false);
-    }
+    } catch(e) { toast('保存失败: ' + e.message, false); }
   }
-
   function resetForm() {
     editingId = null;
-    $('appKey').value = '';
-    $('appKey').disabled = false;
-    $('appName').value = '';
-    $('appBundleId').value = '';
-    $('appVersion').value = '';
-    $('appIpaUrl').value = '';
+    $('appKey').value = ''; $('appKey').disabled = false;
+    $('appName').value = ''; $('appBundleId').value = '';
+    $('appVersion').value = ''; $('appIpaUrl').value = '';
     $('appScope').value = '';
     $('formTitle').textContent = '添加应用';
     $('btnCancel').style.display = 'none';
   }
-
   window._edit = async function(key) {
     try {
       var res = await fetch(API + '?key=' + encodeURIComponent(key));
       var app = await res.json();
       if (!app || app.error) { toast('应用不存在', false); return; }
       editingId = key;
-      $('appKey').value = app.key;
-      $('appKey').disabled = true;
-      $('appName').value = app.name || '';
-      $('appBundleId').value = app.bundleId || '';
-      $('appVersion').value = app.version || '';
-      $('appIpaUrl').value = app.ipaUrl || '';
+      $('appKey').value = app.key; $('appKey').disabled = true;
+      $('appName').value = app.name || ''; $('appBundleId').value = app.bundleId || '';
+      $('appVersion').value = app.version || ''; $('appIpaUrl').value = app.ipaUrl || '';
       $('appScope').value = app.scope || '';
       $('formTitle').textContent = '编辑应用';
       $('btnCancel').style.display = '';
       window.scrollTo(0, 0);
-    } catch(e) {
-      toast('加载失败', false);
-    }
+    } catch(e) { toast('加载失败', false); }
   };
-
   window._toggle = async function(key) {
     try {
       var res = await fetch(API + '?key=' + encodeURIComponent(key));
@@ -231,11 +199,8 @@ td .actions{display:flex;gap:6px}
       toast(newActive ? '已启用' : '已禁用', true);
       if (editingId === key) resetForm();
       loadApps();
-    } catch(e) {
-      toast('操作失败', false);
-    }
+    } catch(e) { toast('操作失败', false); }
   };
-
   window._del = async function(key) {
     if (!confirm('确定删除 ' + key + '？')) return;
     try {
@@ -243,11 +208,8 @@ td .actions{display:flex;gap:6px}
       toast('已删除', true);
       if (editingId === key) resetForm();
       loadApps();
-    } catch(e) {
-      toast('删除失败', false);
-    }
+    } catch(e) { toast('删除失败', false); }
   };
-
   $('btnSave').onclick = saveApp;
   $('btnCancel').onclick = resetForm;
   loadApps();
@@ -259,94 +221,78 @@ td .actions{display:flex;gap:6px}
 // ========== Admin 密码（请修改为你自己的密码） ==========
 const ADMIN_PASSWORD = 'jumo2025';
 
-// ========== Worker 主逻辑 ==========
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
+// ========== Pages Middleware 主逻辑 ==========
+export async function onRequest(context) {
+  const { request, env, next } = context;
+  const url = new URL(request.url);
+  const path = url.pathname;
 
-    // CORS 预检
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      });
-    }
-
-    // ===== /admin — 管理后台 =====
-    if (path === '/admin' || path === '/admin/') {
-      // 带密码查询参数时设置 cookie
-      if (url.searchParams.get('login')) {
-        const pwd = url.searchParams.get('login');
-        if (pwd === ADMIN_PASSWORD) {
-          return new Response(null, {
-            status: 302,
-            headers: {
-              'Location': '/admin',
-              'Set-Cookie': 'admin_auth=1; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=86400'
-            }
-          });
-        }
+  // CORS 预检
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
       }
+    });
+  }
 
-      // 检查 cookie 认证
-      const cookie = request.headers.get('Cookie') || '';
-      if (!cookie.includes('admin_auth=1')) {
-        // 未登录 → 显示登录页
-        return new Response(LOGIN_PAGE, {
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  // ===== /admin — 管理后台 =====
+  if (path === '/admin' || path === '/admin/') {
+    if (url.searchParams.get('login')) {
+      const pwd = url.searchParams.get('login');
+      if (pwd === ADMIN_PASSWORD) {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': '/admin',
+            'Set-Cookie': 'admin_auth=1; Path=/admin; HttpOnly; SameSite=Strict; Max-Age=86400'
+          }
         });
       }
-
-      return new Response(ADMIN_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      });
     }
-
-    // ===== /api/* — 管理 API =====
-    if (path.startsWith('/api/')) {
-      return handleAPI(request, env, path);
+    const cookie = request.headers.get('Cookie') || '';
+    if (!cookie.includes('admin_auth=1')) {
+      return new Response(LOGIN_PAGE, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
-
-    // ===== /manifest/* — 动态 plist =====
-    if (path.startsWith('/manifest/')) {
-      return handleManifest(request, env, path);
-    }
-
-    // ===== /download/* — 代理下载（保留原有逻辑） =====
-    if (path.startsWith('/download/')) {
-      return handleDownload(request, path);
-    }
-
-    // ===== 静态文件（保留原有逻辑） =====
-    var response = await env.ASSETS.fetch(request);
-    if (response && path.endsWith('.plist')) {
-      var h = new Headers(response.headers);
-      h.set('Content-Type', 'application/xml');
-      return new Response(response.body, { status: response.status, headers: h });
-    }
-    return response;
+    return new Response(ADMIN_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
-};
+
+  // ===== /api/* — 管理 API =====
+  if (path.startsWith('/api/')) {
+    return handleAPI(request, env, path);
+  }
+
+  // ===== /manifest/* — 动态 plist =====
+  if (path.startsWith('/manifest/')) {
+    return handleManifest(env, path);
+  }
+
+  // ===== /download/* — 代理下载（保留原有逻辑） =====
+  if (path.startsWith('/download/')) {
+    return handleDownload(request, path);
+  }
+
+  // ===== 静态文件 → 交给 Pages 托管 =====
+  const response = await next();
+  if (response && path.endsWith('.plist')) {
+    const h = new Headers(response.headers);
+    h.set('Content-Type', 'application/xml');
+    return new Response(response.body, { status: response.status, headers: h });
+  }
+  return response;
+}
 
 // ========== API 处理 ==========
 async function handleAPI(request, env, path) {
   const kv = env.KV;
-  if (!kv) {
-    return json({ error: 'KV 未绑定' }, 500);
-  }
+  if (!kv) return json({ error: 'KV 未绑定，请在 Cloudflare Pages Settings → Bindings 添加 KV' }, 500);
 
-  // 简单认证检查（管理 API）
   const cookie = request.headers.get('Cookie') || '';
-  if (!cookie.includes('admin_auth=1')) {
-    return json({ error: '未登录' }, 401);
-  }
+  if (!cookie.includes('admin_auth=1')) return json({ error: '未登录' }, 401);
 
   if (path === '/api/apps' && request.method === 'GET') {
-    // 支持查询单个应用
     const url = new URL(request.url);
     const key = url.searchParams.get('key');
     if (key) {
@@ -354,7 +300,6 @@ async function handleAPI(request, env, path) {
       if (!data) return json({ error: '应用不存在' }, 404);
       return json(data);
     }
-    // 列出所有应用
     const list = await kv.list({ prefix: 'app:' });
     const apps = await Promise.all(list.keys.map(k => kv.get(k.name, 'json')));
     return json(apps.filter(Boolean));
@@ -389,31 +334,19 @@ async function handleAPI(request, env, path) {
 }
 
 // ========== 动态 plist 生成 ==========
-async function handleManifest(request, env, path) {
+async function handleManifest(env, path) {
   const kv = env.KV;
-  if (!kv) {
-    return new Response('KV 未绑定', { status: 500 });
-  }
+  if (!kv) return new Response('KV 未绑定', { status: 500 });
 
-  // /manifest/{key}.plist
   const key = path.replace('/manifest/', '').replace('.plist', '');
   const app = await kv.get('app:' + key, 'json');
 
-  if (!app) {
-    return new Response('App not found: ' + key, { status: 404 });
-  }
-
-  // 如果应用被禁用
-  if (app.active === false) {
-    return new Response('App disabled', { status: 404 });
-  }
+  if (!app) return new Response('App not found: ' + key, { status: 404 });
+  if (app.active === false) return new Response('App disabled', { status: 404 });
 
   const plist = generatePlist(app);
   return new Response(plist, {
-    headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Access-Control-Allow-Origin': '*'
-    }
+    headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Access-Control-Allow-Origin': '*' }
   });
 }
 
@@ -460,60 +393,38 @@ async function handleDownload(request, path) {
   var filepath = path.replace('/download/', '');
   var filename = filepath.split('/').pop();
 
-  // TrollStore.tar → 魔搭
   if (filename === 'TrollStore.tar') {
     var targetURL = 'https://www.modelscope.cn/datasets/qwer1234561476/jumo/resolve/master/TrollStore.tar';
     try {
-      var resp = await fetch(targetURL, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        redirect: 'follow'
-      });
+      var resp = await fetch(targetURL, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow' });
       if (!resp.ok) return new Response('Download failed: ' + resp.status, { status: 502 });
       var headers = new Headers(resp.headers);
       headers.set('Access-Control-Allow-Origin', '*');
       headers.set('Content-Type', 'application/octet-stream');
       return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers: headers });
-    } catch (e) {
-      return new Response('Error: ' + e.message, { status: 502 });
-    }
+    } catch (e) { return new Response('Error: ' + e.message, { status: 502 }); }
   }
 
-  // 文件名映射
-  var fileMap = {
-    'ipa-14.ipa': '14.0-15.1.1.ipa',
-    'ipa-universal.ipa': 'default.ipa'
-  };
+  var fileMap = { 'ipa-14.ipa': '14.0-15.1.1.ipa', 'ipa-universal.ipa': 'default.ipa' };
   var realName = fileMap[filename] || filename;
   var version = filepath.replace('/' + filename, '');
   var githubURL = 'https://github.com/shitou6688/ipa-install/releases/download/' + version + '/' + realName;
 
   try {
-    var resp = await fetch(githubURL, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      redirect: 'follow'
-    });
+    var resp = await fetch(githubURL, { headers: { 'User-Agent': 'Mozilla/5.0' }, redirect: 'follow' });
     if (!resp.ok) return new Response('Download failed: ' + resp.status, { status: 502 });
     var headers = new Headers(resp.headers);
     headers.set('Access-Control-Allow-Origin', '*');
     headers.set('Content-Type', 'application/octet-stream');
-    return new Response(resp.body, {
-      status: resp.status,
-      statusText: resp.statusText,
-      headers: headers
-    });
-  } catch (e) {
-    return new Response('Error: ' + e.message, { status: 502 });
-  }
+    return new Response(resp.body, { status: resp.status, statusText: resp.statusText, headers: headers });
+  } catch (e) { return new Response('Error: ' + e.message, { status: 502 }); }
 }
 
 // ========== 工具函数 ==========
 function json(data, status) {
   return new Response(JSON.stringify(data), {
     status: status || 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
+    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
   });
 }
 
@@ -548,7 +459,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
     <button type="submit">登 录</button>
     <div class="error" id="errMsg"></div>
   </form>
-  <a class="back-link" href="/">← 返回首页</a>
+  <a class="back-link" href="/">\u2190 返回首页</a>
 </div>
 <script>
 document.getElementById('loginForm').onsubmit = function(e) {
